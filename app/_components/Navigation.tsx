@@ -92,26 +92,26 @@ export function HeaderNavbar() {
           {/* Streak & Coins Container */}
           <Link
             href="/games/wordle"
-            className="flex items-center bg-surface-container-low rounded-full px-4 py-1.5 border border-outline-variant shadow-sm gap-3 hover:bg-surface-container transition-colors"
+            className="flex items-center bg-surface-container-low rounded-full px-2.5 py-1 border border-outline-variant shadow-sm gap-2 hover:bg-surface-container transition-colors"
             aria-label="Play Cricket Wordle"
           >
             {/* Streak */}
-            <div className="flex items-center gap-1.5 text-on-surface">
-              <span className="material-symbols-outlined text-tertiary-container text-lg" aria-hidden="true">
+            <div className="flex items-center gap-1 text-on-surface">
+              <span className="material-symbols-outlined text-tertiary-container text-[15px]" aria-hidden="true">
                 local_fire_department
               </span>
-              <span className="font-headline font-bold text-sm">{streak}</span>
+              <span className="font-headline font-bold text-xs">{streak}</span>
             </div>
 
             {/* Divider */}
-            <div className="w-px h-4 bg-outline-variant" />
+            <div className="w-px h-3.5 bg-outline-variant" />
 
             {/* Coins */}
-            <div className="flex items-center gap-1.5 text-on-surface">
-              <span className="material-symbols-outlined text-secondary text-lg" aria-hidden="true">
+            <div className="flex items-center gap-1 text-on-surface">
+              <span className="material-symbols-outlined text-secondary text-[15px]" aria-hidden="true">
                 toll
               </span>
-              <span className="font-headline font-bold text-sm">{coins.toLocaleString()}</span>
+              <span className="font-headline font-bold text-xs">{coins.toLocaleString()}</span>
             </div>
           </Link>
 
