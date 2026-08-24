@@ -14,7 +14,7 @@ async function cricbuzzFetch<T>(path: string): Promise<T> {
             'X-RapidAPI-Key': RAPIDAPI_KEY,
             'X-RapidAPI-Host': RAPIDAPI_HOST,
         },
-        next: { revalidate: 300 },
+        next: { revalidate: 1800 },
     });
 
     if (!res.ok) {
