@@ -30,12 +30,11 @@ export const WORDLE_WORDS: WordleWord[] = [
     { word: 'DEVON', hint: 'English county, or a common first name' },
     { word: 'BOULT', hint: 'New Zealand left-arm fast bowler' },
     { word: 'STARC', hint: 'Australian left-arm pace spearhead' },
-    { word: 'RABAD', hint: '' },
     { word: 'AARON', hint: 'Indian fast bowler first name, or biblical name' },
     { word: 'ASHES', hint: 'Historic Test series between England and Australia' },
     { word: 'BOWLS', hint: 'What a bowler does with the ball, present tense' },
 
-    { word: 'CADDY', hint: '' },
+
     { word: 'CHASE', hint: 'Batting second and pursuing a target score' },
     { word: 'CHUCK', hint: 'Illegal bowling action term' },
     { word: 'CLEAN', hint: 'Describes a well-executed shot or dismissal, "___ bowled"' },
