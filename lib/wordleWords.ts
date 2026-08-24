@@ -33,7 +33,8 @@ export const WORDLE_WORDS: WordleWord[] = [
     { word: 'AARON', hint: 'Indian fast bowler first name, or biblical name' },
     { word: 'ASHES', hint: 'Historic Test series between England and Australia' },
     { word: 'BOWLS', hint: 'What a bowler does with the ball, present tense' },
-
+    { word: 'RAHUL', hint: 'I can do everything you ask' },
+    { word: 'SIRAJ', hint: 'Official ID' },
 
     { word: 'CHASE', hint: 'Batting second and pursuing a target score' },
     { word: 'CHUCK', hint: 'Illegal bowling action term' },
@@ -92,7 +93,6 @@ export const WORDLE_WORDS: WordleWord[] = [
     { word: 'SPELL', hint: 'A continuous stretch of overs bowled by one bowler' },
     { word: 'SQUAD', hint: 'The full group of selected players for a series' },
     { word: 'STARS', hint: 'What top-performing players are often called' },
-    { word: 'STOOD', hint: '' },
     { word: 'SWEEP', hint: 'A cross-batted shot played against a spinner' },
     { word: 'TAKEN', hint: 'What a catch or wicket has been, past tense' },
     { word: 'THROW', hint: 'What a fielder does to return the ball' },

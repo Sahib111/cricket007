@@ -45,7 +45,7 @@ export const PUZZLES: Puzzle[] = [
     },
     {
         answer: 'SACHIN TENDULKAR',
-        riddle: '"I am the only player to score 100 international centuries. Who am I?"',
+        riddle: '"I am the only player who have the sexiest daughter. Who am I?"',
         hints: [
             { text: 'I am from India and started my international career as a teenager', reward: 15 },
             { text: 'I am often called the "God of Cricket" in my country', reward: 12 },
@@ -78,7 +78,7 @@ export const PUZZLES: Puzzle[] = [
     },
     {
         answer: 'MS DHONI',
-        riddle: '"I led my country to victory in the 2011 World Cup with a six. Who am I?"',
+        riddle: '"I have many memes of my name on the internet. Who am I?"',
         hints: [
             { text: 'I am a former Indian wicketkeeper-batsman and captain', reward: 15 },
             { text: 'I am the only captain to win all three ICC white-ball trophies', reward: 12 },
@@ -89,7 +89,7 @@ export const PUZZLES: Puzzle[] = [
     },
     {
         answer: 'JASPRIT BUMRAH',
-        riddle: '"I am known for my unique bowling action and yorkers. Who am I?"',
+        riddle: '"I am known for my unique bowling action. Who am I?"',
         hints: [
             { text: 'I am an Indian fast bowler from Gujarat', reward: 15 },
             { text: 'My bowling action is considered unconventional but highly effective', reward: 12 },
@@ -100,7 +100,7 @@ export const PUZZLES: Puzzle[] = [
     },
     {
         answer: 'AB DE VILLIERS',
-        riddle: '"I am nicknamed \'Mr. 360\' for my ability to hit the ball anywhere on the field. Who am I?"',
+        riddle: '"I have ability to hit the ball anywhere on the field. Who am I?"',
         hints: [
             { text: 'I am a former South African batsman', reward: 15 },
             { text: 'I could bat, keep wicket, and bowl during my career', reward: 12 },
@@ -111,7 +111,7 @@ export const PUZZLES: Puzzle[] = [
     },
     {
         answer: 'PAT CUMMINS',
-        riddle: '"I captained my country to a World Test Championship and a 50-over World Cup win. Who am I?"',
+        riddle: '"I am hated by many Indians. Who am I?"',
         hints: [
             { text: 'I am an Australian fast bowler and current national captain', reward: 15 },
             { text: 'I made my Test debut as a teenager against South Africa', reward: 12 },
