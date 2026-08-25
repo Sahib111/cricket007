@@ -21,7 +21,7 @@ export default function HomePage() {
 
   const genderMatches = matches.filter((m) => (activeGender === 'womens' ? isWomensMatch(m) : !isWomensMatch(m)));
   const relevantOnly = genderMatches.filter(isRelevantMatch).filter(isWithinNextWeek);
-  const finalMatches = relevantOnly.length > 0 ? relevantOnly : genderMatches;
+  const finalMatches = relevantOnly.length >= 3 ? relevantOnly : (genderMatches.length > 0 ? genderMatches : relevantOnly);
 
   const filteredMatches = finalMatches.sort((a, b) => {
     const order = { live: 0, upcoming: 1, result: 2 };
