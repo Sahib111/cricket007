@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useProfile } from '@/lib/useProfile';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
@@ -378,8 +377,19 @@ export default function AuctionPage() {
           </div>
         </div>
       ) : currentPlayer ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 bg-surface-container-lowest border-l-4 border-l-primary border border-outline-variant rounded-xl p-5 shadow-sm">
+        <div className="flex flex-col gap-6">
+          {/* Wallet Balance Bar */}
+          <div className="flex items-center justify-between bg-surface-container-lowest border border-outline-variant rounded-xl px-5 py-3 shadow-sm">
+            <span className="text-[10px] font-mono-code text-on-surface-variant uppercase tracking-wide">
+              Wallet Balance
+            </span>
+            <span className="font-headline font-extrabold text-xl text-primary">
+              🪙 {yourWallet}
+            </span>
+          </div>
+
+          {/* Current Player Auction Card */}
+          <div className="bg-surface-container-lowest border-l-4 border-l-primary border border-outline-variant rounded-xl p-5 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <span className="font-headline font-bold text-sm text-primary">Current Player</span>
               <span className="text-[10px] font-mono-code text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">
@@ -454,50 +464,9 @@ export default function AuctionPage() {
                 onClick={() => nextLot(wasUnsoldRound)}
                 className="w-full mt-3 bg-secondary text-white font-headline font-bold text-sm py-2.5 rounded-lg hover:opacity-90 transition-all"
               >
-                Next Player →
+              Next Player →
               </button>
             )}
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm">
-              <span className="text-[10px] font-mono-code text-on-surface-variant uppercase tracking-wide">
-                Wallet Balance
-              </span>
-              <div className="flex items-center justify-between mt-1">
-                <span className="font-headline font-extrabold text-xl text-primary">
-                  🪙 {yourWallet}
-                </span>
-                <span className="material-symbols-outlined text-secondary">add_circle</span>
-              </div>
-            </div>
-
-            <div className="bg-surface-container-lowest border-t-4 border-t-secondary border border-outline-variant rounded-xl p-4 shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <span className="flex items-center gap-1 text-live text-xs font-bold font-mono-code">
-                  <span className="w-1.5 h-1.5 rounded-full bg-live animate-pulse" />
-                  LIVE
-                </span>
-                <span className="text-[10px] text-on-surface-variant font-mono-code">World Cup</span>
-              </div>
-              <div className="flex justify-between text-xs font-headline font-bold text-on-surface mb-1">
-                <span>IND</span><span>185/4</span>
-              </div>
-              <div className="flex justify-between text-xs font-headline font-bold text-on-surface-variant">
-                <span>AUS</span><span>Yet to bat</span>
-              </div>
-              <Link href="/predict" className="text-xs font-headline font-bold text-secondary mt-2 inline-block hover:underline">
-                View Scorecard →
-              </Link>
-            </div>
-
-            <Link
-              href="/predict"
-              className="w-full bg-gradient-to-br from-secondary to-secondary-container text-white rounded-xl py-3 px-4 flex items-center justify-center gap-2 font-headline font-bold text-sm hover:shadow-md transition-all"
-            >
-              Predict and win coins
-              <span className="material-symbols-outlined text-lg">arrow_forward</span>
-            </Link>
           </div>
         </div>
       ) : null}
