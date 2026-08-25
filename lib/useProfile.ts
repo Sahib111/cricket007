@@ -6,6 +6,8 @@ import { identifyUser, track, ANALYTICS_EVENTS } from './analytics';
 
 const AVATAR_SEEDS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 const STARTING_COINS = 100;
+const LOCAL_NAME_KEY = 'cricket007_user_name';
+const LOCAL_SEED_KEY = 'cricket007_avatar_seed';
 
 interface Profile {
     displayName: string;
@@ -23,39 +25,60 @@ export function useProfile() {
     }, []);
 
     async function init() {
-        const { data: { session } } = await supabase.auth.getSession();
+        let localName = '';
+        let localSeed = '';
+        try {
+            localName = localStorage.getItem(LOCAL_NAME_KEY) || '';
+            localSeed = localStorage.getItem(LOCAL_SEED_KEY) || '';
+        } catch (e) { }
 
-        let uid = session?.user?.id;
-
-        if (!uid) {
-            const { data, error } = await supabase.auth.signInAnonymously();
-            if (error || !data.user) {
-                setLoading(false);
-                return;
-            }
-            uid = data.user.id;
+        if (localName) {
+            setProfile({ displayName: localName, avatarSeed: localSeed || '1' });
+            setNeedsName(false);
         }
 
-        setUserId(uid);
+        let uid: string | undefined;
 
-        // Identify the user in PostHog
-        identifyUser(uid, { auth_type: 'anonymous' });
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            uid = session?.user?.id;
 
-        const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('display_name, avatar_seed')
-            .eq('user_id', uid)
-            .single();
+            if (!uid) {
+                const { data, error } = await supabase.auth.signInAnonymously();
+                if (!error && data?.user) {
+                    uid = data.user.id;
+                }
+            }
+        } catch (e) {
+            console.error('Supabase auth init error:', e);
+        }
 
-        if (existingProfile) {
-            setProfile({ displayName: existingProfile.display_name, avatarSeed: existingProfile.avatar_seed });
+        if (uid) {
+            setUserId(uid);
+            identifyUser(uid, { auth_type: 'anonymous' });
 
-            // Re-identify with profile traits
-            identifyUser(uid, {
-                display_name: existingProfile.display_name,
-                avatar_seed: existingProfile.avatar_seed,
-            });
-        } else {
+            const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('display_name, avatar_seed')
+                .eq('user_id', uid)
+                .single();
+
+            if (existingProfile) {
+                setProfile({ displayName: existingProfile.display_name, avatarSeed: existingProfile.avatar_seed });
+                setNeedsName(false);
+                try {
+                    localStorage.setItem(LOCAL_NAME_KEY, existingProfile.display_name);
+                    localStorage.setItem(LOCAL_SEED_KEY, existingProfile.avatar_seed);
+                } catch (e) { }
+
+                identifyUser(uid, {
+                    display_name: existingProfile.display_name,
+                    avatar_seed: existingProfile.avatar_seed,
+                });
+            } else if (!localName) {
+                setNeedsName(true);
+            }
+        } else if (!localName) {
             setNeedsName(true);
         }
 
@@ -63,36 +86,63 @@ export function useProfile() {
     }
 
     async function saveName(name: string) {
-        if (!userId) return;
+        const cleanName = name.trim();
+        if (!cleanName) return;
+
         const avatarSeed = AVATAR_SEEDS[Math.floor(Math.random() * AVATAR_SEEDS.length)];
 
-        const { error } = await supabase
-            .from('profiles')
-            .insert({ user_id: userId, display_name: name, avatar_seed: avatarSeed });
+        // 1. Immediately update React state so the modal closes instantly
+        setProfile({ displayName: cleanName, avatarSeed });
+        setNeedsName(false);
 
-        if (!error) {
-            setProfile({ displayName: name, avatarSeed });
-            setNeedsName(false);
+        // 2. Instantly persist to localStorage
+        try {
+            localStorage.setItem(LOCAL_NAME_KEY, cleanName);
+            localStorage.setItem(LOCAL_SEED_KEY, avatarSeed);
+        } catch (e) { }
 
-            // Track name submission and re-identify with profile info
-            track(ANALYTICS_EVENTS.NAME_SUBMITTED, { display_name: name });
-            identifyUser(userId, { display_name: name, avatar_seed: avatarSeed });
+        // 3. Track name submission
+        track(ANALYTICS_EVENTS.NAME_SUBMITTED, { display_name: cleanName });
 
-            // First-time login — give the new wallet a starting balance.
-            // upsert avoids a duplicate-key error if a wallets row already exists for this user.
-            await supabase
-                .from('wallets')
-                .upsert(
-                    { user_id: userId, coins: STARTING_COINS, streak: 0 },
-                    { onConflict: 'user_id', ignoreDuplicates: true }
-                );
+        let currentUid = userId;
+        if (!currentUid) {
+            try {
+                const { data } = await supabase.auth.signInAnonymously();
+                if (data?.user) {
+                    currentUid = data.user.id;
+                    setUserId(currentUid);
+                }
+            } catch (e) { }
+        }
 
-            track(ANALYTICS_EVENTS.COINS_EARNED, {
-                amount: STARTING_COINS,
-                source: 'signup_bonus',
-            });
+        if (currentUid) {
+            identifyUser(currentUid, { display_name: cleanName, avatar_seed: avatarSeed });
+
+            // 4. Save to Supabase using upsert (non-blocking)
+            try {
+                await supabase
+                    .from('profiles')
+                    .upsert(
+                        { user_id: currentUid, display_name: cleanName, avatar_seed: avatarSeed },
+                        { onConflict: 'user_id' }
+                    );
+
+                await supabase
+                    .from('wallets')
+                    .upsert(
+                        { user_id: currentUid, coins: STARTING_COINS, streak: 0 },
+                        { onConflict: 'user_id', ignoreDuplicates: true }
+                    );
+
+                track(ANALYTICS_EVENTS.COINS_EARNED, {
+                    amount: STARTING_COINS,
+                    source: 'signup_bonus',
+                });
+            } catch (err) {
+                console.error('Failed to sync profile to database:', err);
+            }
         }
     }
 
     return { userId, profile, needsName, loading, saveName };
-}
+}
