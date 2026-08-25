@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from './ProfileProvider';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 
 export function HeaderNavbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { userId, profile } = useProfile();
+  const { userId, profile } = useProfileContext();
   const [coins, setCoins] = useState(0);
   const [streak, setStreak] = useState(0);
 

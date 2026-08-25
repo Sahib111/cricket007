@@ -1,10 +1,10 @@
 'use client';
 
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from './ProfileProvider';
 import NameGate from './NameGate';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-    const { needsName, loading, saveName } = useProfile();
+    const { needsName, loading, saveName } = useProfileContext();
 
     if (loading) {
         return (

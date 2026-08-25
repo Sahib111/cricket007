@@ -1,131 +1,24 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import type { MatchSummary } from '@/lib/cricapi';
-import { getMatchStatusLabel, getTeamScore, isWomensMatch, isRelevantMatch, isWithinNextWeek, formatMatchDate } from '@/lib/matchHelpers';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { fetchAllMatches } from '@/lib/fetchAllMatches';
+import { HomeMatchCards } from './_components/HomeMatchCards';
+import { HomeTrackedLink } from './_components/HomeTrackedLink';
+import { ANALYTICS_EVENTS } from '@/lib/analytics';
 
-export default function HomePage() {
-  const [activeGender, setActiveGender] = useState<'mens' | 'womens'>('mens');
-  const [matches, setMatches] = useState<MatchSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+export const revalidate = 1800; // revalidate at most every 30 mins (same as Cricbuzz fetch interval)
 
-  useEffect(() => {
-    fetch('/api/matches')
-      .then((res) => res.json())
-      .then((data) => setMatches(data.matches ?? []))
-      .catch(() => setMatches([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const relevantOnly = matches
-    .filter((m) => (activeGender === 'womens' ? isWomensMatch(m) : !isWomensMatch(m)))
-    .filter(isRelevantMatch)
-    .filter(isWithinNextWeek);
-
-  const filteredMatches = relevantOnly.sort((a, b) => {
-    const order = { live: 0, upcoming: 1, result: 2 };
-    return order[getMatchStatusLabel(a)] - order[getMatchStatusLabel(b)];
-  });
+export default async function HomePage() {
+  const matches = await fetchAllMatches().catch(() => []);
 
   return (
     <main className="flex-grow flex flex-col w-full max-w-[1280px] mx-auto px-4 md:px-6 pt-6 sm:pt-8 pb-12 gap-8">
-      {/* Mens/Womens Toggle */}
-      <div className="flex p-1 bg-surface-container-highest rounded-lg w-full md:w-fit md:mr-auto border border-outline-variant">
-        <button
-          type="button"
-          onClick={() => { setActiveGender('mens'); track(ANALYTICS_EVENTS.GENDER_TOGGLED, { gender: 'mens' }); }}
-          className={`flex-1 md:px-12 py-2 rounded-md font-headline font-bold text-sm transition-all cursor-pointer ${activeGender === 'mens'
-            ? 'bg-surface text-on-surface shadow-sm'
-            : 'text-on-surface-variant hover:bg-surface-variant'
-            }`}
-        >
-          Mens
-        </button>
-        <button
-          type="button"
-          onClick={() => { setActiveGender('womens'); track(ANALYTICS_EVENTS.GENDER_TOGGLED, { gender: 'womens' }); }}
-          className={`flex-1 md:px-12 py-2 rounded-md font-headline font-bold text-sm transition-all cursor-pointer ${activeGender === 'womens'
-            ? 'bg-surface text-on-surface shadow-sm'
-            : 'text-on-surface-variant hover:bg-surface-variant'
-            }`}
-        >
-          Womens
-        </button>
-      </div>
-
-      {/* Live/Upcoming Match Cards */}
-      <div className="flex overflow-x-auto snap-x gap-4 w-full pb-2">
-        {loading && (
-          <div className="text-on-surface-variant font-body-md text-sm py-8">Loading matches...</div>
-        )}
-
-        {!loading && filteredMatches.length === 0 && (
-          <div className="text-on-surface-variant font-body-md text-sm py-8">
-            No {activeGender === 'womens' ? "women's" : "men's"} matches this week.
-          </div>
-        )}
-
-        {!loading && filteredMatches.slice(0, 6).map((match) => {
-          const statusLabel = getMatchStatusLabel(match);
-          const scoreA = getTeamScore(match, 0);
-          const scoreB = getTeamScore(match, 1);
-
-          return (
-            <Link
-              key={match.id}
-              href={`/match/${match.id}`}
-              onClick={() => track(ANALYTICS_EVENTS.MATCH_CARD_CLICKED, { match_id: match.id, match_name: match.name, status: statusLabel })}
-              className={`min-w-[300px] sm:min-w-[320px] w-80 md:w-96 snap-start shrink-0 bg-surface-container-lowest border border-outline-variant shadow-sm rounded-xl p-4 flex flex-col gap-3 hover:shadow-md transition-all ${statusLabel === 'live' ? 'border-t-4 border-t-secondary' : ''
-                }`}
-            >
-              <div className="flex justify-between items-center font-mono-code text-xs font-semibold">
-                {statusLabel === 'live' ? (
-                  <span className="font-bold text-live-red flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-live-red animate-pulse" />
-                    LIVE
-                  </span>
-                ) : (
-                  <span className="font-bold text-on-surface px-1.5 py-0.5 bg-surface-container-high rounded text-[10px] uppercase">
-                    {statusLabel}
-                  </span>
-                )}
-                <span className="text-on-surface-variant text-[11px]">
-                  {match.matchType?.toUpperCase()} • {match.venue}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {match.teams?.slice(0, 2).map((team, i) => (
-                  <div key={team} className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-surface-container-highest rounded-full flex items-center justify-center font-headline font-bold text-xs text-on-surface">
-                        {team.slice(0, 3).toUpperCase()}
-                      </div>
-                      <span className="font-headline font-bold text-sm sm:text-base text-on-surface">
-                        {team}
-                      </span>
-                    </div>
-                    <span className="font-headline font-extrabold text-on-surface text-sm sm:text-base">
-                      {i === 0 ? scoreA : scoreB}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="text-on-surface-variant font-body-md mt-auto pt-2 text-sm font-medium line-clamp-2">
-                {match.status || formatMatchDate(match.date)}
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+      {/* Mens/Womens Toggle & Match Cards (Client Component for active tab state & filtering) */}
+      <HomeMatchCards matches={matches} />
 
       {/* Predict & Win Banner */}
-      <Link
+      <HomeTrackedLink
         href="/predict"
-        onClick={() => track(ANALYTICS_EVENTS.PREDICT_BANNER_CLICKED, { source: 'home' })}
+        event={ANALYTICS_EVENTS.PREDICT_BANNER_CLICKED}
+        eventProps={{ source: 'home' }}
         className="w-full bg-gradient-to-br from-secondary to-secondary-container text-on-primary rounded-xl p-6 flex items-center justify-between cursor-pointer hover:shadow-md transition-all shadow-md mt-2"
       >
         <div className="flex items-center gap-4">
@@ -139,7 +32,7 @@ export default function HomePage() {
         <span className="material-symbols-outlined text-2xl text-white group-hover:translate-x-1 transition-transform" aria-hidden="true">
           arrow_forward
         </span>
-      </Link>
+      </HomeTrackedLink>
 
       {/* Test Your Knowledge */}
       <section aria-labelledby="games-heading" className="flex flex-col gap-6 w-full mt-4">
@@ -151,10 +44,11 @@ export default function HomePage() {
         </h2>
 
         <div className="grid grid-cols-1 gap-6">
-          <Link
+          <HomeTrackedLink
             id="card-wordle"
             href="/games/wordle"
-            onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'wordle', source: 'home' })}
+            event={ANALYTICS_EVENTS.GAME_CARD_CLICKED}
+            eventProps={{ game: 'wordle', source: 'home' }}
             className="group bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-6 sm:p-8 flex items-center justify-between hover:shadow-md hover:border-secondary hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-5 sm:gap-6">
@@ -173,12 +67,13 @@ export default function HomePage() {
             <span className="material-symbols-outlined text-outline-variant group-hover:text-secondary group-hover:translate-x-1 transition-all text-3xl sm:text-4xl">
               chevron_right
             </span>
-          </Link>
+          </HomeTrackedLink>
 
-          <Link
+          <HomeTrackedLink
             id="card-auction"
             href="/games/auction"
-            onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'auction', source: 'home' })}
+            event={ANALYTICS_EVENTS.GAME_CARD_CLICKED}
+            eventProps={{ game: 'auction', source: 'home' }}
             className="group bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-6 sm:p-8 flex items-center justify-between hover:shadow-md hover:border-secondary hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-5 sm:gap-6">
@@ -197,12 +92,13 @@ export default function HomePage() {
             <span className="material-symbols-outlined text-outline-variant group-hover:text-secondary group-hover:translate-x-1 transition-all text-3xl sm:text-4xl">
               chevron_right
             </span>
-          </Link>
+          </HomeTrackedLink>
 
-          <Link
+          <HomeTrackedLink
             id="card-guess-cricketer"
             href="/games/guess-cricketer"
-            onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'guess-cricketer', source: 'home' })}
+            event={ANALYTICS_EVENTS.GAME_CARD_CLICKED}
+            eventProps={{ game: 'guess-cricketer', source: 'home' }}
             className="group bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-6 sm:p-8 flex items-center justify-between hover:shadow-md hover:border-secondary hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-5 sm:gap-6">
@@ -221,7 +117,7 @@ export default function HomePage() {
             <span className="material-symbols-outlined text-outline-variant group-hover:text-secondary group-hover:translate-x-1 transition-all text-3xl sm:text-4xl">
               chevron_right
             </span>
-          </Link>
+          </HomeTrackedLink>
         </div>
       </section>
     </main>
