@@ -3,7 +3,7 @@ import type { MatchSummary } from './cricapi';
 export function getMatchStatusLabel(match: MatchSummary): 'live' | 'result' | 'upcoming' {
     const status = match.status?.toLowerCase() ?? '';
 
-    if (!status) return 'upcoming'; // schedule-endpoint matches have no status text yet
+    if (!status) return 'upcoming';
 
     if (
         status.includes('won') ||
@@ -66,8 +66,10 @@ const TOP_TEAMS = [
 
 export function isRelevantMatch(match: MatchSummary): boolean {
     const teams = match.teams?.map((t) => t.toLowerCase()) ?? [];
-    if (teams.length < 2) return false;
-    return teams.some((team) => TOP_TEAMS.some((t) => team.includes(t))) || teams.length === 2;
+    return (
+        teams.length === 2 &&
+        teams.every((team) => TOP_TEAMS.some((t) => team.includes(t)))
+    );
 }
 
 export function isWithinNextWeek(match: MatchSummary): boolean {
@@ -78,7 +80,6 @@ export function isWithinNextWeek(match: MatchSummary): boolean {
     if (!match.date) return true;
     const matchDate = new Date(match.date).getTime();
     const now = Date.now();
-    // Allow matches within 14 days or any upcoming match without strict cutoff if pool is small
     const rangeAhead = now + 14 * 24 * 60 * 60 * 1000;
     return matchDate >= (now - 24 * 60 * 60 * 1000) && matchDate <= rangeAhead;
 }

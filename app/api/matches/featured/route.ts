@@ -1,24 +1,44 @@
 import { NextResponse } from 'next/server';
-import { getLiveMatches } from '@/lib/cricapi';
+import { getLiveMatches as getCricApiMatches } from '@/lib/cricapi';
+import { getLiveMatchesCricbuzz, getUpcomingSchedules, getInternationalSchedule, toMatchSummary } from '@/lib/cricbuzz';
 import { getFeaturedMatch, isWomensMatch, isRelevantMatch, isWithinNextWeek } from '@/lib/matchHelpers';
 import type { MatchSummary } from '@/lib/cricapi';
 
 export async function GET() {
     try {
-        const matches = await getLiveMatches().catch((e) => {
-            console.error('FEATURED CricAPI ERROR:', e.message);
-            return [];
-        });
+        const matches: MatchSummary[] = await getCricApiMatches().catch(() => []);
 
         const seen = new Set<string>();
-        const merged: MatchSummary[] = (matches ?? []).filter((m) => {
+        let merged: MatchSummary[] = (matches ?? []).filter((m) => {
             if (!m.id || seen.has(m.id)) return false;
             seen.add(m.id);
             return true;
         });
 
-        const mensPool = merged.filter((m) => !isWomensMatch(m)).filter(isRelevantMatch).filter(isWithinNextWeek);
-        const womensPool = merged.filter(isWomensMatch).filter(isRelevantMatch).filter(isWithinNextWeek);
+        let mensPool = merged.filter((m) => !isWomensMatch(m)).filter(isRelevantMatch).filter(isWithinNextWeek);
+        let womensPool = merged.filter(isWomensMatch).filter(isRelevantMatch).filter(isWithinNextWeek);
+
+        if (mensPool.length === 0 && womensPool.length === 0) {
+            const [live, upcoming, schedule] = await Promise.all([
+                getLiveMatchesCricbuzz().catch(() => []),
+                getUpcomingSchedules().catch(() => []),
+                getInternationalSchedule().catch(() => []),
+            ]);
+
+            const liveConverted = live.map(toMatchSummary);
+            const upcomingConverted = upcoming.map(toMatchSummary);
+            const scheduleConverted = schedule.map(toMatchSummary);
+
+            const cbSeen = new Set<string>();
+            merged = [...liveConverted, ...upcomingConverted, ...scheduleConverted].filter((m) => {
+                if (cbSeen.has(m.id)) return false;
+                cbSeen.add(m.id);
+                return true;
+            });
+
+            mensPool = merged.filter((m) => !isWomensMatch(m)).filter(isRelevantMatch).filter(isWithinNextWeek);
+            womensPool = merged.filter(isWomensMatch).filter(isRelevantMatch).filter(isWithinNextWeek);
+        }
 
         const mens = getFeaturedMatch(mensPool.length > 0 ? mensPool : merged.filter((m) => !isWomensMatch(m)));
         const womens = getFeaturedMatch(womensPool.length > 0 ? womensPool : merged.filter(isWomensMatch));
