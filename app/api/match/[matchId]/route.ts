@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getMatchScorecard } from '@/lib/cricbuzz';
-import { getMatchInfo } from '@/lib/cricapi';
+import { getMatchScorecard, getLiveMatchesCricbuzz, toMatchSummary } from '@/lib/cricbuzz';
+import { getLiveMatches as getCricApiMatches } from '@/lib/cricapi';
+import type { MatchSummary } from '@/lib/cricapi';
 
 export async function GET(
     _req: Request,
@@ -18,13 +19,22 @@ export async function GET(
             }
         }
 
-        // 2. Fallback to CricAPI match_info if non-numeric ID or RapidAPI unavailable
-        const info = await getMatchInfo(matchId).catch(() => null);
-        if (info) {
-            const scoreInnings = (info.score || []).map((s, idx) => ({
+        // 2. Search match summary across CricAPI and Cricbuzz
+        const [cricApiList, cricbuzzList] = await Promise.all([
+            getCricApiMatches().catch(() => []),
+            getLiveMatchesCricbuzz().catch(() => []),
+        ]);
+
+        const cricbuzzConverted = cricbuzzList.map(toMatchSummary);
+        const combined: MatchSummary[] = [...cricApiList, ...cricbuzzConverted];
+
+        const found = combined.find((m) => String(m.id) === String(matchId));
+
+        if (found) {
+            const scoreInnings = (found.score || []).map((s, idx) => ({
                 inningsid: idx + 1,
-                batteamname: s.inning || info.teams[idx] || `Team ${idx + 1}`,
-                batteamsname: info.teams[idx] || `T${idx + 1}`,
+                batteamname: s.inning || found.teams[idx] || `Team ${idx + 1}`,
+                batteamsname: found.teams[idx] || `T${idx + 1}`,
                 score: s.r,
                 wickets: s.w,
                 overs: s.o,
@@ -33,10 +43,22 @@ export async function GET(
                 bowler: [],
             }));
 
+            const finalScorecard = scoreInnings.length > 0 ? scoreInnings : (found.teams || []).map((t, idx) => ({
+                inningsid: idx + 1,
+                batteamname: t,
+                batteamsname: t,
+                score: 0,
+                wickets: 0,
+                overs: 0,
+                runrate: 0,
+                batsman: [],
+                bowler: [],
+            }));
+
             const scorecard = {
-                scorecard: scoreInnings,
-                status: info.status || 'Match Status Available',
-                ismatchcomplete: info.status?.toLowerCase().includes('won') ?? false,
+                scorecard: finalScorecard,
+                status: found.status || found.name || 'Match In Progress',
+                ismatchcomplete: found.status?.toLowerCase().includes('won') ?? false,
             };
 
             return NextResponse.json({ scorecard });
