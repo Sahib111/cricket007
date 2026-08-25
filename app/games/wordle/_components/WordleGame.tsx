@@ -423,6 +423,13 @@ export default function WordleGame() {
         </p>
       </div>
 
+      {/* Color Legend */}
+      <div className="flex items-center justify-center gap-3 sm:gap-4 -mt-2 flex-wrap">
+        <span className="text-[10px] sm:text-xs text-on-surface-variant flex items-center gap-1">🟩 Correct</span>
+        <span className="text-[10px] sm:text-xs text-on-surface-variant flex items-center gap-1">🟥 Wrong spot</span>
+        <span className="text-[10px] sm:text-xs text-on-surface-variant flex items-center gap-1">⬜ Not in word</span>
+      </div>
+
       {invalidWordMsg && (
         <p className="text-xs font-bold text-live -mt-3">Not a valid word — try again.</p>
       )}
@@ -431,7 +438,7 @@ export default function WordleGame() {
       )}
 
       {/* Grid */}
-      <div className="grid grid-rows-6 gap-2 w-full max-w-xs aspect-[5/6]" role="grid" aria-label="Wordle Grid">
+      <div className="grid grid-rows-6 gap-1.5 sm:gap-2 w-full max-w-[min(20rem,85vw)] mx-auto aspect-[5/6]" role="grid" aria-label="Wordle Grid">
         {Array.from({ length: MAX_ATTEMPTS }).map((_, rowIndex) => {
           const isSubmittedRow = rowIndex < guesses.length;
           const isCurrentRow = rowIndex === guesses.length && !isGameOver;
@@ -457,7 +464,7 @@ export default function WordleGame() {
           return (
             <div
               key={rowIndex}
-              className={`grid grid-cols-5 gap-2 ${isShaking ? 'animate-bounce' : ''}`}
+              className={`grid grid-cols-5 gap-1.5 sm:gap-2 ${isShaking ? 'animate-bounce' : ''}`}
               role="row"
             >
               {rowLetters.map((tile, colIndex) => {
@@ -519,19 +526,20 @@ export default function WordleGame() {
       )}
 
       {/* Keyboard */}
-      <div className="w-full flex flex-col gap-1.5 mt-2 select-none" aria-label="On-screen Keyboard">
+      <div className="w-full flex flex-col gap-1.5 mt-2 select-none px-1" aria-label="On-screen Keyboard">
         {KEYBOARD_ROWS.map((row, rIdx) => (
-          <div key={rIdx} className="flex justify-center gap-1 sm:gap-1.5">
+          <div key={rIdx} className="flex justify-center gap-[5px] sm:gap-1.5">
             {row.map((key) => {
               const state = keyStates[key];
-              let keyBg = 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface';
+              // Unused keys = darker; absent (used but not in word) = lighter
+              let keyBg = 'bg-neutral-700 hover:bg-neutral-600 text-neutral-100';
 
               if (state === 'correct') {
                 keyBg = 'bg-pitch-green text-white font-bold';
               } else if (state === 'present') {
                 keyBg = 'bg-secondary-container text-white font-bold';
               } else if (state === 'absent') {
-                keyBg = 'bg-surface-container text-on-surface-variant/60';
+                keyBg = 'bg-neutral-400 text-neutral-700';
               }
 
               const isWide = key === 'ENTER' || key === 'BACKSPACE';
@@ -542,7 +550,7 @@ export default function WordleGame() {
                   id={`key-${key.toLowerCase()}`}
                   onClick={() => onKeyClick(key)}
                   disabled={isGameOver || isValidating}
-                  className={`flex items-center justify-center rounded-lg text-xs sm:text-sm font-semibold transition-colors py-3 sm:py-3.5 disabled:opacity-40 ${isWide ? 'px-2 sm:px-3 text-[10px] sm:text-xs min-w-[50px] sm:min-w-[64px]' : 'w-8 sm:w-10'
+                  className={`flex items-center justify-center rounded-lg text-xs sm:text-sm font-semibold transition-colors py-3.5 sm:py-3.5 disabled:opacity-40 active:scale-95 ${isWide ? 'flex-[1.6] text-[10px] sm:text-xs min-w-0' : 'flex-1 min-w-0'
                     } ${keyBg}`}
                   aria-label={key === 'BACKSPACE' ? 'Backspace' : key}
                 >
