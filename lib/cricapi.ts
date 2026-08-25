@@ -61,15 +61,51 @@ async function cricApiFetch<T>(endpoint: string, params: Record<string, string> 
     return json.data;
 }
 
-/** Get list of current/live and upcoming matches */
+function parseCricScoreToSummary(item: any): MatchSummary {
+    const parseScoreStr = (s: string, teamName: string) => {
+        if (!s) return null;
+        const match = s.match(/(\d+)(?:\/(\d+))?\s*(?:\(([\d.]+)\s*ov\))?/);
+        if (!match) return null;
+        return {
+            r: parseInt(match[1], 10) || 0,
+            w: match[2] ? parseInt(match[2], 10) : 0,
+            o: match[3] ? parseFloat(match[3]) : 0,
+            inning: `${teamName} Inning 1`,
+        };
+    };
+
+    const cleanTeam = (t: string) => (t || '').replace(/\[.*?\]/g, '').trim();
+    const team1 = cleanTeam(item.t1);
+    const team2 = cleanTeam(item.t2);
+
+    const s1 = parseScoreStr(item.t1s, team1);
+    const s2 = parseScoreStr(item.t2s, team2);
+    const scores = [s1, s2].filter(Boolean) as { r: number; w: number; o: number; inning: string }[];
+
+    return {
+        id: item.id,
+        name: `${team1} vs ${team2}, ${item.series || item.matchType || ''}`,
+        status: item.ms === 'live' ? (item.status || 'LIVE') : item.status,
+        matchType: item.matchType || 't20',
+        venue: item.series || '',
+        date: item.dateTimeGMT || '',
+        teams: [team1, team2],
+        score: scores.length > 0 ? scores : undefined,
+    };
+}
+
+/** Get list of current/live and upcoming matches from all CricAPI endpoints */
 export async function getLiveMatches(): Promise<MatchSummary[]> {
-    const [current, upcoming] = await Promise.all([
+    const [current, cricScoreData, upcoming] = await Promise.all([
         cricApiFetch<MatchSummary[]>('currentMatches', { offset: '0' }).catch(() => []),
+        cricApiFetch<any[]>('cricScore').catch(() => []),
         cricApiFetch<MatchSummary[]>('matches', { offset: '0' }).catch(() => []),
     ]);
 
+    const cricScoreConverted = (cricScoreData || []).map(parseCricScoreToSummary);
+
     const seen = new Set<string>();
-    return [...(current || []), ...(upcoming || [])].filter((m) => {
+    return [...(current || []), ...cricScoreConverted, ...(upcoming || [])].filter((m) => {
         if (!m.id || seen.has(m.id)) return false;
         seen.add(m.id);
         return true;
