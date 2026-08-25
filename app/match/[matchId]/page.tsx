@@ -37,7 +37,11 @@ export default function MatchScoreboardPage({
     if (!data?.scorecard || data.scorecard.length === 0) {
         return (
             <main className="w-full max-w-[700px] mx-auto px-4 pt-8 pb-12">
-                <p className="text-sm text-on-surface-variant font-body-md">Match not found.</p>
+                <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 text-center shadow-sm">
+                    <p className="text-base font-bold text-on-surface font-headline mb-2">Scorecard Unavailable</p>
+                    <p className="text-xs text-on-surface-variant font-body-md mb-4">Detailed ball-by-ball scorecard will update live as soon as play starts.</p>
+                    <a href="/" className="inline-block bg-primary text-on-primary px-4 py-2 rounded-md text-xs font-bold font-headline">Back to Matches</a>
+                </div>
             </main>
         );
     }
