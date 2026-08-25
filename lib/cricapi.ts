@@ -61,9 +61,19 @@ async function cricApiFetch<T>(endpoint: string, params: Record<string, string> 
     return json.data;
 }
 
-/** Get list of current/live matches */
+/** Get list of current/live and upcoming matches */
 export async function getLiveMatches(): Promise<MatchSummary[]> {
-    return cricApiFetch<MatchSummary[]>('currentMatches', { offset: '0' });
+    const [current, upcoming] = await Promise.all([
+        cricApiFetch<MatchSummary[]>('currentMatches', { offset: '0' }).catch(() => []),
+        cricApiFetch<MatchSummary[]>('matches', { offset: '0' }).catch(() => []),
+    ]);
+
+    const seen = new Set<string>();
+    return [...(current || []), ...(upcoming || [])].filter((m) => {
+        if (!m.id || seen.has(m.id)) return false;
+        seen.add(m.id);
+        return true;
+    });
 }
 
 /** Get detailed match info by match id */
@@ -75,6 +85,7 @@ export async function getMatchInfo(matchId: string): Promise<MatchSummary> {
 export async function getMatchSquad(matchId: string): Promise<MatchSquadResponse> {
     return cricApiFetch<MatchSquadResponse>('match_squad', { id: matchId });
 }
+
 export interface SeriesInfo {
     id: string;
     name: string;
@@ -86,6 +97,7 @@ export interface SeriesInfo {
 export async function getUpcomingSeries(): Promise<SeriesInfo[]> {
     return cricApiFetch<SeriesInfo[]>('series', { offset: '0' });
 }
+
 export interface SeriesMatch {
     id: string;
     name: string;

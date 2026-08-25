@@ -19,12 +19,11 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const relevantOnly = matches
-    .filter((m) => (activeGender === 'womens' ? isWomensMatch(m) : !isWomensMatch(m)))
-    .filter(isRelevantMatch)
-    .filter(isWithinNextWeek);
+  const genderMatches = matches.filter((m) => (activeGender === 'womens' ? isWomensMatch(m) : !isWomensMatch(m)));
+  const relevantOnly = genderMatches.filter(isRelevantMatch).filter(isWithinNextWeek);
+  const finalMatches = relevantOnly.length > 0 ? relevantOnly : genderMatches;
 
-  const filteredMatches = relevantOnly.sort((a, b) => {
+  const filteredMatches = finalMatches.sort((a, b) => {
     const order = { live: 0, upcoming: 1, result: 2 };
     return order[getMatchStatusLabel(a)] - order[getMatchStatusLabel(b)];
   });

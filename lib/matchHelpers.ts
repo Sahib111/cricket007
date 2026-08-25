@@ -18,7 +18,8 @@ export function getMatchStatusLabel(match: MatchSummary): 'live' | 'result' | 'u
         status.includes('scheduled') ||
         status.includes('toss') ||
         status.includes('preview') ||
-        status.includes('match starts at')
+        status.includes('match starts at') ||
+        status.includes('not started')
     ) return 'upcoming';
     return 'live';
 }
@@ -44,7 +45,8 @@ export function getTeamScore(match: MatchSummary, teamIndex: number) {
 
 export function isWomensMatch(match: MatchSummary): boolean {
     const name = match.name?.toLowerCase() ?? '';
-    return name.includes('women') || name.includes('w vs') || name.includes(" w'");
+    const teams = match.teams?.join(' ').toLowerCase() ?? '';
+    return name.includes('women') || name.includes('w vs') || name.includes(" w'") || teams.includes('women');
 }
 
 export function getFeaturedMatch(matches: MatchSummary[]): MatchSummary | null {
@@ -59,15 +61,14 @@ const TOP_TEAMS = [
     'india', 'australia', 'england', 'pakistan', 'new zealand', 'south africa',
     'sri lanka', 'bangladesh', 'afghanistan', 'west indies', 'zimbabwe', 'ireland',
     'scotland', 'netherlands', 'uae', 'nepal', 'oman', 'usa', 'united states',
-    'canada', 'china', 'indonesia'
+    'canada', 'china', 'indonesia', 'belgium', 'luxembourg', 'tanzania', 'uganda', 'namibia',
+    'thailand', 'hong kong', 'germany', 'sweden', 'denmark', 'norway', 'turkey', 'greece'
 ];
 
 export function isRelevantMatch(match: MatchSummary): boolean {
     const teams = match.teams?.map((t) => t.toLowerCase()) ?? [];
-    return (
-        teams.length === 2 &&
-        teams.every((team) => TOP_TEAMS.some((t) => team.includes(t)))
-    );
+    if (teams.length < 2) return false;
+    return teams.some((team) => TOP_TEAMS.some((t) => team.includes(t))) || teams.length === 2;
 }
 
 export function isWithinNextWeek(match: MatchSummary): boolean {
@@ -78,9 +79,11 @@ export function isWithinNextWeek(match: MatchSummary): boolean {
     if (!match.date) return true;
     const matchDate = new Date(match.date).getTime();
     const now = Date.now();
-    const weekAhead = now + 7 * 24 * 60 * 60 * 1000;
-    return matchDate >= now && matchDate <= weekAhead;
+    // Allow matches within 14 days or any upcoming match without strict cutoff if pool is small
+    const rangeAhead = now + 14 * 24 * 60 * 60 * 1000;
+    return matchDate >= (now - 24 * 60 * 60 * 1000) && matchDate <= rangeAhead;
 }
+
 export function getMatchWinner(match: MatchSummary): string | null {
     const status = match.status?.toLowerCase() ?? '';
     if (!status.includes('won')) return null;
