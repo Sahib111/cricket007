@@ -99,4 +99,7 @@ export const WORDLE_WORDS: WordleWord[] = [
     { word: 'VENUE', hint: 'The location where a match is played' },
     { word: 'WATCH', hint: 'What commentators tell viewers to do closely' },
     { word: 'WIDES', hint: 'Deliveries bowled out of the batsman\'s reach' },
+    { word: 'SHAMI', hint: 'Sexiest seam position' },
+    { word: 'BABAR', hint: 'Some people loves his cover drive(sarcasm)' }
+
 ];
