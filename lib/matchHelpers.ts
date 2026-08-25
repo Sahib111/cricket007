@@ -61,8 +61,7 @@ const TOP_TEAMS = [
     'india', 'australia', 'england', 'pakistan', 'new zealand', 'south africa',
     'sri lanka', 'bangladesh', 'afghanistan', 'west indies', 'zimbabwe', 'ireland',
     'scotland', 'netherlands', 'uae', 'nepal', 'oman', 'usa', 'united states',
-    'canada', 'china', 'indonesia', 'belgium', 'luxembourg', 'tanzania', 'uganda', 'namibia',
-    'thailand', 'hong kong', 'germany', 'sweden', 'denmark', 'norway', 'turkey', 'greece'
+    'canada', 'china', 'indonesia', 'namibia', 'thailand'
 ];
 
 export function isRelevantMatch(match: MatchSummary): boolean {
