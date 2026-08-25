@@ -1,34 +1,19 @@
 import { NextResponse } from 'next/server';
-import { getLiveMatches as getCricApiMatches } from '@/lib/cricapi';
 import { getLiveMatchesCricbuzz, getUpcomingSchedules, getInternationalSchedule, toMatchSummary } from '@/lib/cricbuzz';
+import { getLiveMatches as getCricApiMatches } from '@/lib/cricapi';
 import { isRelevantMatch } from '@/lib/matchHelpers';
 import type { MatchSummary } from '@/lib/cricapi';
 
 export async function GET() {
     try {
-        // 1. Try CricAPI first
-        const cricApiMatches: MatchSummary[] = await getCricApiMatches().catch((e) => {
-            console.error('CricAPI Error:', e.message);
-            return [];
-        });
+        let matches: MatchSummary[] = [];
 
-        const seen = new Set<string>();
-        let merged = (cricApiMatches ?? []).filter((m) => {
-            if (!m.id || seen.has(m.id)) return false;
-            seen.add(m.id);
-            return true;
-        });
-
-        // Check if CricAPI produced any ICC/international matches from TOP_TEAMS
-        const relevantCricApi = merged.filter(isRelevantMatch);
-
-        // 2. Fallback to RapidAPI / Cricbuzz if CricAPI produced no relevant TOP_TEAMS matches
-        if (relevantCricApi.length === 0) {
-            console.log('Falling back to Cricbuzz / RapidAPI...');
+        // 1. Primary source: RapidAPI / Cricbuzz
+        try {
             const [live, upcoming, schedule] = await Promise.all([
-                getLiveMatchesCricbuzz().catch((e) => { console.error('LIVE ERROR:', e.message); return []; }),
-                getUpcomingSchedules().catch((e) => { console.error('UPCOMING ERROR:', e.message); return []; }),
-                getInternationalSchedule().catch((e) => { console.error('SCHEDULE ERROR:', e.message); return []; }),
+                getLiveMatchesCricbuzz().catch((e) => { console.error('RapidAPI Live Error:', e.message); return []; }),
+                getUpcomingSchedules().catch((e) => { console.error('RapidAPI Upcoming Error:', e.message); return []; }),
+                getInternationalSchedule().catch((e) => { console.error('RapidAPI Schedule Error:', e.message); return []; }),
             ]);
 
             const liveConverted = live.map(toMatchSummary);
@@ -36,18 +21,31 @@ export async function GET() {
             const scheduleConverted = schedule.map(toMatchSummary);
 
             const cbSeen = new Set<string>();
-            const cbMerged = [...liveConverted, ...upcomingConverted, ...scheduleConverted].filter((m) => {
-                if (cbSeen.has(m.id)) return false;
+            matches = [...liveConverted, ...upcomingConverted, ...scheduleConverted].filter((m) => {
+                if (!m.id || cbSeen.has(m.id)) return false;
                 cbSeen.add(m.id);
                 return true;
             });
-
-            if (cbMerged.length > 0) {
-                merged = cbMerged;
-            }
+        } catch (err) {
+            console.error('RapidAPI Primary Fetch Failed:', err);
         }
 
-        return NextResponse.json({ matches: merged });
+        // 2. Fallback to CricAPI if RapidAPI yields no matches (e.g. 429 quota or 403 subscription error)
+        if (matches.length === 0) {
+            console.log('RapidAPI returned 0 matches. Falling back to CricAPI...');
+            const cricApiMatches = await getCricApiMatches().catch(() => []);
+            const seen = new Set<string>();
+            matches = (cricApiMatches ?? []).filter((m) => {
+                if (!m.id || seen.has(m.id)) return false;
+                seen.add(m.id);
+                return true;
+            });
+        }
+
+        // Filter strictly for ICC / International TOP_TEAMS matches
+        const relevantMatches = matches.filter(isRelevantMatch);
+
+        return NextResponse.json({ matches: relevantMatches.length > 0 ? relevantMatches : matches });
     } catch (err) {
         console.error('Failed to fetch matches:', err);
         return NextResponse.json({ matches: [], error: 'Failed to fetch matches' }, { status: 500 });
