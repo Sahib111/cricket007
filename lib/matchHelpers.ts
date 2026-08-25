@@ -66,10 +66,8 @@ const TOP_TEAMS = [
 
 export function isRelevantMatch(match: MatchSummary): boolean {
     const teams = match.teams?.map((t) => t.toLowerCase()) ?? [];
-    return (
-        teams.length === 2 &&
-        teams.every((team) => TOP_TEAMS.some((t) => team.includes(t)))
-    );
+    if (teams.length < 2) return false;
+    return teams.some((team) => TOP_TEAMS.some((t) => team.includes(t)));
 }
 
 export function isWithinNextWeek(match: MatchSummary): boolean {
