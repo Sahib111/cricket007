@@ -53,7 +53,6 @@ export const WORDLE_WORDS: WordleWord[] = [
     { word: 'HITER', hint: 'what do we call a slogger' },
     { word: 'HOOKS', hint: 'Shots played against a short-pitched delivery, plural' },
     { word: 'KNOCK', hint: 'Informal term for a batting innings' },
-    { word: 'LEADS', hint: 'What a team does when ahead on runs' },
     { word: 'LEAPS', hint: 'What a fielder does to take a spectacular catch' },
     { word: 'LEVEL', hint: 'When scores are tied' },
     { word: 'LOFTS', hint: 'Shots hit in the air' },
