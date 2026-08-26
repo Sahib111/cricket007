@@ -12,26 +12,92 @@ interface Player {
 }
 
 const DUMMY_PLAYERS: Player[] = [
-  { id: 'p1',  name: 'Virat Kohli',       role: 'BAT',  country: '🇮🇳 India',        basePrice: 4 },
-  { id: 'p2',  name: 'Jasprit Bumrah',    role: 'BOWL', country: '🇮🇳 India',        basePrice: 4 },
-  { id: 'p3',  name: 'Rashid Khan',       role: 'BOWL', country: '🇦🇫 Afghanistan',  basePrice: 3 },
-  { id: 'p4',  name: 'Andre Russell',     role: 'AR',   country: '🌴 West Indies',   basePrice: 3 },
-  { id: 'p5',  name: 'Jos Buttler',       role: 'WK',   country: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 England',     basePrice: 3 },
-  { id: 'p6',  name: 'Suryakumar Yadav', role: 'BAT',  country: '🇮🇳 India',        basePrice: 3 },
-  { id: 'p7',  name: 'Hardik Pandya',     role: 'AR',   country: '🇮🇳 India',        basePrice: 2 },
-  { id: 'p8',  name: 'Heinrich Klaasen',  role: 'WK',   country: '🇿🇦 South Africa', basePrice: 2 },
-  { id: 'p9',  name: 'Trent Boult',       role: 'BOWL', country: '🇳🇿 New Zealand',  basePrice: 2 },
-  { id: 'p10', name: 'Shubman Gill',      role: 'BAT',  country: '🇮🇳 India',        basePrice: 2 },
+  { id: 'p1', name: 'Virat Kohli', role: 'BAT', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p2', name: 'Rohit Sharma', role: 'BAT', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p3', name: 'Jasprit Bumrah', role: 'BOWL', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p4', name: 'Hardik Pandya', role: 'AR', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p5', name: 'Steve Smith', role: 'BAT', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p6', name: 'Pat Cummins', role: 'BOWL', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p7', name: 'David Warner', role: 'BAT', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p8', name: 'Glenn Maxwell', role: 'AR', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p9', name: 'Ben Stokes', role: 'AR', country: '🏴 England', basePrice: 1 },
+  { id: 'p10', name: 'Joe Root', role: 'BAT', country: '🏴 England', basePrice: 1 },
+
+  { id: 'p11', name: 'Jonny Bairstow', role: 'WK', country: '🏴 England', basePrice: 1 },
+  { id: 'p12', name: 'Mitchell Starc', role: 'BOWL', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p13', name: 'Kagiso Rabada', role: 'BOWL', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p14', name: 'Quinton de Kock', role: 'WK', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p15', name: 'Suryakumar Yadav', role: 'BAT', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p16', name: 'Ravindra Jadeja', role: 'AR', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p17', name: 'KL Rahul', role: 'WK', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p18', name: 'Trent Boult', role: 'BOWL', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p19', name: 'Shubman Gill', role: 'BAT', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p20', name: 'Travis Head', role: 'BAT', country: '🇦🇺 Australia', basePrice: 1 },
+
+  { id: 'p21', name: 'Kane Williamson', role: 'BAT', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p22', name: 'Babar Azam', role: 'BAT', country: '🇵🇰 Pakistan', basePrice: 1 },
+  { id: 'p23', name: 'Harry Brook', role: 'BAT', country: '🏴 England', basePrice: 1 },
+  { id: 'p24', name: 'Daryl Mitchell', role: 'AR', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p25', name: 'Marnus Labuschagne', role: 'BAT', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p26', name: 'Devon Conway', role: 'BAT', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p27', name: 'Yashasvi Jaiswal', role: 'BAT', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p28', name: 'Rishabh Pant', role: 'WK', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p29', name: 'Jos Buttler', role: 'WK', country: '🏴 England', basePrice: 1 },
+  { id: 'p30', name: 'Mohammad Rizwan', role: 'WK', country: '🇵🇰 Pakistan', basePrice: 1 },
+
+  { id: 'p31', name: 'Heinrich Klaasen', role: 'WK', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p32', name: 'Nicholas Pooran', role: 'WK', country: '🌴 West Indies', basePrice: 1 },
+  { id: 'p33', name: 'Faf du Plessis', role: 'BAT', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p34', name: 'Ruturaj Gaikwad', role: 'BAT', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p35', name: 'Sanju Samson', role: 'WK', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p36', name: 'Ishan Kishan', role: 'WK', country: '🇮🇳 India', basePrice: 1 },
+
+  { id: 'p37', name: 'Liam Livingstone', role: 'AR', country: '🏴 England', basePrice: 1 },
+  { id: 'p38', name: 'Mitchell Marsh', role: 'AR', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p39', name: 'Ravichandran Ashwin', role: 'AR', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p40', name: 'Axar Patel', role: 'AR', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p41', name: 'Mitchell Santner', role: 'AR', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p42', name: 'Wanindu Hasaranga', role: 'AR', country: '🇱🇰 Sri Lanka', basePrice: 1 },
+  { id: 'p43', name: 'Marco Jansen', role: 'AR', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p44', name: 'Rachin Ravindra', role: 'AR', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p45', name: 'Sam Curran', role: 'AR', country: '🏴 England', basePrice: 1 },
+  { id: 'p46', name: 'Moeen Ali', role: 'AR', country: '🏴 England', basePrice: 1 },
+  { id: 'p47', name: 'Washington Sundar', role: 'AR', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p48', name: 'Sikandar Raza', role: 'AR', country: '🇿🇼 Zimbabwe', basePrice: 1 },
+
+  { id: 'p49', name: 'Josh Hazlewood', role: 'BOWL', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p50', name: 'Jofra Archer', role: 'BOWL', country: '🏴 England', basePrice: 1 },
+  { id: 'p51', name: 'Shaheen Afridi', role: 'BOWL', country: '🇵🇰 Pakistan', basePrice: 1 },
+  { id: 'p52', name: 'Mohammed Shami', role: 'BOWL', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p53', name: 'Mohammed Siraj', role: 'BOWL', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p54', name: 'Matt Henry', role: 'BOWL', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p55', name: 'Nathan Lyon', role: 'BOWL', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p56', name: 'Adam Zampa', role: 'BOWL', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p57', name: 'Rashid Khan', role: 'BOWL', country: '🇦🇫 Afghanistan', basePrice: 1 },
+  { id: 'p58', name: 'Adil Rashid', role: 'BOWL', country: '🏴 England', basePrice: 1 },
+  { id: 'p59', name: 'Keshav Maharaj', role: 'BOWL', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p60', name: 'Maheesh Theekshana', role: 'BOWL', country: '🇱🇰 Sri Lanka', basePrice: 1 },
+  { id: 'p61', name: 'Tabraiz Shamsi', role: 'BOWL', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p62', name: 'Lockie Ferguson', role: 'BOWL', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p63', name: 'Tim Southee', role: 'BOWL', country: '🇳🇿 New Zealand', basePrice: 1 },
+  { id: 'p64', name: 'Anrich Nortje', role: 'BOWL', country: '🇿🇦 South Africa', basePrice: 1 },
+  { id: 'p65', name: 'Nathan Ellis', role: 'BOWL', country: '🇦🇺 Australia', basePrice: 1 },
+  { id: 'p66', name: 'Yuzvendra Chahal', role: 'BOWL', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p67', name: 'Ravi Bishnoi', role: 'BOWL', country: '🇮🇳 India', basePrice: 1 },
+  { id: 'p68', name: 'Noor Ahmad', role: 'BOWL', country: '🇦🇫 Afghanistan', basePrice: 1 },
+  { id: 'p69', name: 'Naseem Shah', role: 'BOWL', country: '🇵🇰 Pakistan', basePrice: 1 },
+  { id: 'p70', name: 'Mark Wood', role: 'BOWL', country: '🏴 England', basePrice: 1 },
+  { id: 'p71', name: 'Gus Atkinson', role: 'BOWL', country: '🏴 England', basePrice: 1 },
 ];
 
 const INITIAL_BUDGET = 20; // 20 coins budget
 const SQUAD_LIMIT = 5;
 
 const ROLE_BADGES: Record<string, { label: string; color: string }> = {
-  BAT:  { label: 'BAT',  color: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
+  BAT: { label: 'BAT', color: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
   BOWL: { label: 'BOWL', color: 'bg-violet-500/15 text-violet-400 border-violet-500/30' },
-  AR:   { label: 'ALL-ROUNDER', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
-  WK:   { label: 'WICKET-KEEPER', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
+  AR: { label: 'ALL-ROUNDER', color: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+  WK: { label: 'WICKET-KEEPER', color: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
 };
 
 export default function AuctionGame() {
@@ -69,7 +135,7 @@ export default function AuctionGame() {
 
       {/* ── Mode Switcher & Budget Bar ── */}
       <div className="rounded-2xl border border-zinc-800 bg-zinc-900/90 p-4 shadow-xl space-y-4">
-        
+
         {/* Mode Buttons */}
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
@@ -81,11 +147,10 @@ export default function AuctionGame() {
               id="btn-mode-computer"
               type="button"
               onClick={() => setMode('COMPUTER')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                mode === 'COMPUTER'
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${mode === 'COMPUTER'
                   ? 'bg-violet-600 text-white shadow-md'
                   : 'text-zinc-400 hover:text-white'
-              }`}
+                }`}
               role="radio"
               aria-checked={mode === 'COMPUTER'}
             >
@@ -96,11 +161,10 @@ export default function AuctionGame() {
               id="btn-mode-friend"
               type="button"
               onClick={() => setMode('FRIEND')}
-              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
-                mode === 'FRIEND'
+              className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${mode === 'FRIEND'
                   ? 'bg-violet-600 text-white shadow-md'
                   : 'text-zinc-400 hover:text-white'
-              }`}
+                }`}
               role="radio"
               aria-checked={mode === 'FRIEND'}
             >
@@ -165,9 +229,8 @@ export default function AuctionGame() {
                   </div>
 
                   <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-extrabold ${
-                      ROLE_BADGES[player.role].color
-                    }`}
+                    className={`rounded-full border px-2 py-0.5 text-[10px] font-extrabold ${ROLE_BADGES[player.role].color
+                      }`}
                   >
                     {ROLE_BADGES[player.role].label}
                   </span>
@@ -221,11 +284,10 @@ export default function AuctionGame() {
               Selected Squad
             </h2>
             <span
-              className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                isSquadFull
+              className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${isSquadFull
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : 'bg-zinc-800 text-zinc-400'
-              }`}
+                }`}
             >
               {squad.length} / {SQUAD_LIMIT} Players
             </span>
