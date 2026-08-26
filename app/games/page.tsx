@@ -14,7 +14,7 @@ export default function GamesPage() {
                 Minigames
             </h1>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-4xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
                 <Link
                     href="/games/wordle"
                     onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'wordle', source: 'games_hub' })}
