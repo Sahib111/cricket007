@@ -33,7 +33,7 @@ export default function HomePage() {
   */
 
   return (
-    <main className="flex-grow flex flex-col w-full max-w-[1280px] mx-auto px-4 md:px-6 pt-6 sm:pt-8 pb-12 gap-8">
+    <main className="flex-grow flex flex-col w-full max-w-[1280px] mx-auto px-4 md:px-6 pt-4 sm:pt-6 pb-12 gap-5 sm:gap-6">
       {/* Mens/Womens Toggle */}
       <div className="flex p-1 bg-surface-container-highest rounded-lg w-full md:w-fit md:mr-auto border border-outline-variant">
         <button
@@ -126,18 +126,20 @@ export default function HomePage() {
         })}
       </div>
       */}
-      <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-sm">
-        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
-          <span className="material-symbols-outlined text-3xl sm:text-4xl">
+      <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl py-4 px-6 sm:py-5 sm:px-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-5 text-center sm:text-left shadow-sm">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <span className="material-symbols-outlined text-xl sm:text-2xl">
             sports_cricket
           </span>
         </div>
-        <h3 className="font-headline font-bold text-xl sm:text-2xl text-on-surface mb-2">
-          Live Scores Coming Soon
-        </h3>
-        <p className="font-body-md text-sm sm:text-base text-on-surface-variant max-w-md">
-          We're working on bringing you real-time match coverage, ball-by-ball updates, and live scorecards. Stay tuned!
-        </p>
+        <div>
+          <h3 className="font-headline font-bold text-base sm:text-lg text-on-surface">
+            Live Scores Coming Soon
+          </h3>
+          <p className="font-body-md text-xs sm:text-sm text-on-surface-variant">
+            We're working on bringing you real-time match coverage, ball-by-ball updates, and live scorecards. Stay tuned!
+          </p>
+        </div>
       </div>
 
       {/* Predict & Win Banner */}
