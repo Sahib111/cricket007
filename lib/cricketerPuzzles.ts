@@ -276,4 +276,121 @@ export const PUZZLES: Puzzle[] = [
         ]
     },
 
+    {
+        answer: 'GARFIELD SOBERS',
+        riddle: "I am the only player in Test history to have scored 6,000 runs, taken 200 wickets, and held 100 catches. Who am I?",
+        hints: [
+            { text: 'I scored 365 not out in a Test match, setting a world record at the time', reward: 20 },
+            { text: 'I am widely regarded as the greatest all-rounder of all time', reward: 15 },
+            { text: 'I represented the West Indies', reward: 12 },
+            { text: 'I could bowl fast, medium pace, and spin', reward: 7 },
+            { text: 'My nickname was "Garry" ', reward: 3 },
+            { text: 'My first name is Garfield', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'JACK HOBBS',
+        riddle: "I scored more first-class centuries than any other batsman in history. Who am I?",
+        hints: [
+            { text: 'I scored 199 in a single innings, the highest score by an English batsman in Tests at the time', reward: 20 },
+            { text: 'I played my entire domestic career for Surrey', reward: 15 },
+            { text: 'I am often called "The Master"', reward: 12 },
+            { text: 'I scored 61,237 first-class runs', reward: 7 },
+            { text: 'I represented England in Test cricket', reward: 3 },
+            { text: 'My first name is Jack', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'LEN HUTTON',
+        riddle: "I captained England in the first-ever Test match held at Lord's. Who am I?",
+        hints: [
+            { text: 'I scored 364 in a Test match, the highest individual score in Test history for many years', reward: 20 },
+            { text: 'I scored 364 against Australia at The Oval in 1938', reward: 15 },
+            { text: 'I was known for my immaculate technique and concentration', reward: 12 },
+            { text: 'I scored more than 6,000 Test runs for England', reward: 7 },
+            { text: 'I captained England in 30 Test matches', reward: 3 },
+            { text: 'My surname begins with H', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'DAVID GOWER',
+        riddle: "I am remembered for my stylish left-handed batting and entertaining style of play. Who am I?",
+        hints: [
+            { text: 'I scored 152 against Australia in a Boxing Day Test at Melbourne', reward: 20 },
+            { text: 'I was a graceful and flamboyant batsman for England', reward: 15 },
+            { text: 'I scored 8,231 Test runs at an average of 44.25', reward: 12 },
+            { text: 'I captained England in 35 Test matches', reward: 7 },
+            { text: 'I am primarily known as a left-handed batsman', reward: 3 },
+            { text: 'My surname is Gower', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'ALASTAIR COOK',
+        riddle: "I am England's leading run-scorer in Test cricket. Who am I?",
+        hints: [
+            { text: 'I scored 12,472 Test runs, the most by any English batsman', reward: 20 },
+            { text: 'I am the first English batsman to score 10,000 Test runs', reward: 15 },
+            { text: 'I scored 244* against Australia in Perth in 2013', reward: 12 },
+            { text: 'I captained England in 59 Test matches', reward: 7 },
+            { text: 'I am a left-handed opening batsman', reward: 3 },
+            { text: 'My first name is Alastair', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'IAN BOTHAM',
+        riddle: "I played a pivotal role in one of England's greatest Ashes victories with both bat and ball. Who am I?",
+        hints: [
+            { text: 'I scored 149* at Headingley in 1981, one of the greatest Ashes innings ever', reward: 20 },
+            { text: 'I took 5 wickets in 11 balls against Australia at Headingley', reward: 15 },
+            { text: 'I scored over 5,000 Test runs and took over 380 wickets', reward: 12 },
+            { text: 'I am widely regarded as one of the greatest all-rounders', reward: 7 },
+            { text: 'I represented England in Ashes series', reward: 3 },
+            { text: 'My surname begins with B', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'KEVIN PIETERSEN',
+        riddle: "I scored one of the most destructive centuries in Ashes history at The Oval. Who am I?",
+        hints: [
+            { text: 'I scored 186 at The Oval in 2005 to help England retain the Ashes', reward: 20 },
+            { text: 'I was a dynamic and aggressive batsman for England', reward: 15 },
+            { text: 'I scored 8,181 Test runs at a strike rate of 74.7', reward: 12 },
+            { text: 'I was part of England"s 2010 T20 World Cup winning team', reward: 7 },
+            { text: 'I was known for my "switch hit" shot', reward: 3 },
+            { text: 'My surname is Pietersen', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'GARY KIRSTEN',
+        riddle: "I was the leading run-scorer in the 1996 World Cup with 605 runs. Who am I?",
+        hints: [
+            { text: 'I scored 210 in a Test match against England in Durban', reward: 20 },
+            { text: 'I opened the batting for South Africa for many years', reward: 15 },
+            { text: 'I scored 7,273 Test runs at an average of 45.27', reward: 12 },
+            { text: 'I coached the Indian cricket team to victory in the 2011 World Cup', reward: 7 },
+            { text: 'I played 101 Test matches for South Africa', reward: 3 },
+            { text: 'My first name is Gary', reward: 1 }
+        ]
+    },
+
+    {
+        answer: 'GRAEME SMITH',
+        riddle: "I am the youngest player to have captained a Test team at the age of 22. Who am I?",
+        hints: [
+            { text: 'I scored 311* against England in Birmingham in 2003', reward: 20 },
+            { text: 'I captained South Africa in 109 Test matches, the most by any captain', reward: 15 },
+            { text: 'I scored 9,265 Test runs at an average of 48.48', reward: 12 },
+            { text: 'I was a left-handed opening batsman and occasional left-arm spinner', reward: 7 },
+            { text: 'I led South Africa to the No. 1 ranking in Test cricket', reward: 3 },
+            { text: 'My surname begins with S', reward: 1 }
+        ]
+    },
+
 ];
