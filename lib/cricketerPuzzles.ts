@@ -265,7 +265,7 @@ export const PUZZLES: Puzzle[] = [
     },
 
     {
-        answer: 'KUMAR SANGAKKARA',
+        answer: 'KUMAR SANGAKARA',
         riddle: "Behind the gloves was a batsman whose numbers eventually became impossible to ignore. Who am I?",
         hints: [
             { text: 'I scored four consecutive ODI centuries during the 2015 World Cup', reward: 15 },

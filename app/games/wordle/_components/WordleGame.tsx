@@ -528,7 +528,7 @@ export default function WordleGame() {
       {/* Keyboard */}
       <div className="w-full flex flex-col gap-1.5 mt-2 select-none px-1" aria-label="On-screen Keyboard">
         {KEYBOARD_ROWS.map((row, rIdx) => (
-          <div key={rIdx} className="flex justify-center gap-[5px] sm:gap-1.5">
+          <div key={rIdx} className="flex justify-center gap-[3px] sm:gap-1.5 w-full">
             {row.map((key) => {
               const state = keyStates[key];
               // Unused keys = darker; absent (used but not in word) = lighter
@@ -542,7 +542,16 @@ export default function WordleGame() {
                 keyBg = 'bg-neutral-400 text-neutral-700';
               }
 
-              const isWide = key === 'ENTER' || key === 'BACKSPACE';
+              let widthClass = 'flex-1 min-w-0';
+              let textClass = 'text-xs sm:text-sm font-semibold';
+
+              if (key === 'ENTER') {
+                widthClass = 'flex-[2] min-w-0';
+                textClass = 'text-[11px] sm:text-xs font-bold tracking-tight px-1';
+              } else if (key === 'BACKSPACE') {
+                widthClass = 'flex-[1.5] min-w-0';
+                textClass = 'text-sm sm:text-base font-bold';
+              }
 
               return (
                 <button
@@ -550,8 +559,7 @@ export default function WordleGame() {
                   id={`key-${key.toLowerCase()}`}
                   onClick={() => onKeyClick(key)}
                   disabled={isGameOver || isValidating}
-                  className={`flex items-center justify-center rounded-lg text-xs sm:text-sm font-semibold transition-colors py-3.5 sm:py-3.5 disabled:opacity-40 active:scale-95 ${isWide ? 'flex-[1.6] text-[10px] sm:text-xs min-w-0' : 'flex-1 min-w-0'
-                    } ${keyBg}`}
+                  className={`flex items-center justify-center rounded-lg transition-colors py-3.5 sm:py-3.5 disabled:opacity-40 active:scale-95 ${widthClass} ${textClass} ${keyBg}`}
                   aria-label={key === 'BACKSPACE' ? 'Backspace' : key}
                 >
                   {key === 'BACKSPACE' ? '⌫' : key}

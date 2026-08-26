@@ -58,6 +58,7 @@ export default function PredictPage() {
   const [rawMatches, setRawMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
+  /* Temporarily disabled match fetching & filtering
   useEffect(() => {
     fetch('/api/matches')
       .then((res) => res.json())
@@ -87,9 +88,11 @@ export default function PredictPage() {
       : tab === 'mens'
         ? FALLBACK_MENS
         : FALLBACK_WOMENS;
+  */
 
   return (
-    <main className="w-full max-w-[1280px] mx-auto px-4 md:px-6 pt-6 sm:pt-8 pb-12">
+    <main className="w-full max-w-[1280px] mx-auto px-4 md:px-6 pt-6 sm:pt-8 pb-12 min-h-[60vh] flex flex-col justify-center items-center">
+      {/* Temporarily commented out predict content:
       <h1 className="font-headline font-extrabold text-primary text-2xl sm:text-3xl">
         Predict and Win Coins
       </h1>
@@ -125,74 +128,24 @@ export default function PredictPage() {
       {!loading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {matches.map((match) => (
-            <div
-              key={match.id}
-              className={`bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm flex flex-col ${match.status === 'live' ? 'border-l-4 border-l-live' : 'border-l-4 border-l-primary'
-                }`}
-            >
-              <div className="p-4 flex-1 flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                  {match.status === 'live' ? (
-                    <span className="flex items-center gap-1 text-live text-xs font-bold font-mono-code">
-                      <span className="w-1.5 h-1.5 rounded-full bg-live animate-pulse" />
-                      LIVE
-                    </span>
-                  ) : (
-                    <span className="bg-surface-container text-on-surface-variant text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-                      Upcoming
-                    </span>
-                  )}
-                  <span className="text-on-surface-variant text-[11px] font-mono-code">
-                    {match.series}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-center gap-4 mb-2">
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center text-xs font-bold text-on-surface">
-                      {match.teamA.code}
-                    </div>
-                    <span className="font-body-md text-xs text-on-surface-variant">
-                      {match.teamA.name}
-                    </span>
-                  </div>
-
-                  <span className="font-headline text-xs font-semibold text-on-surface-variant">
-                    VS
-                  </span>
-
-                  <div className="flex flex-col items-center gap-1.5">
-                    <div className="w-10 h-10 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center text-xs font-bold text-on-surface">
-                      {match.teamB.code}
-                    </div>
-                    <span className="font-body-md text-xs text-on-surface-variant">
-                      {match.teamB.name}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-3 mb-4 text-center">
-                  <span
-                    className={`font-mono-code text-xs ${match.status === 'live' ? 'text-secondary font-bold' : 'text-on-surface-variant'
-                      }`}
-                  >
-                    {match.note}
-                  </span>
-                </div>
-
-                <Link
-                  href={`/predict/${match.id}`}
-                  onClick={() => track(ANALYTICS_EVENTS.PREDICT_MATCH_SELECTED, { match_id: match.id, team_a: match.teamA.name, team_b: match.teamB.name, status: match.status })}
-                  className={`mt-auto w-full text-center rounded-lg py-2.5 font-headline font-bold text-sm text-white transition-all hover:opacity-90 ${match.status === 'live' ? 'bg-secondary' : 'bg-primary'
-                    }`}
-                >
-                  Predict Now
-                </Link>
-              </div>
-            </div>
+            ...
           ))}
         </div>
       )}
+      */}
+      <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-sm my-auto">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-secondary/10 text-secondary flex items-center justify-center mb-4">
+          <span className="material-symbols-outlined text-3xl sm:text-4xl">
+            online_prediction
+          </span>
+        </div>
+        <h1 className="font-headline font-extrabold text-primary text-2xl sm:text-3xl mb-2">
+          Predictions Coming Soon
+        </h1>
+        <p className="font-body-md text-sm sm:text-base text-on-surface-variant max-w-md">
+          Predict match outcomes and win coins! Match prediction contests will open as upcoming matches are scheduled.
+        </p>
+      </div>
     </main>
   );
 }

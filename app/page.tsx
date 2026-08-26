@@ -13,6 +13,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [showSuggestModal, setShowSuggestModal] = useState(false);
 
+  /* Temporarily disabled live match fetching
   useEffect(() => {
     fetch('/api/matches')
       .then((res) => res.json())
@@ -29,6 +30,7 @@ export default function HomePage() {
     const order = { live: 0, upcoming: 1, result: 2 };
     return order[getMatchStatusLabel(a)] - order[getMatchStatusLabel(b)];
   });
+  */
 
   return (
     <main className="flex-grow flex flex-col w-full max-w-[1280px] mx-auto px-4 md:px-6 pt-6 sm:pt-8 pb-12 gap-8">
@@ -57,6 +59,7 @@ export default function HomePage() {
       </div>
 
       {/* Live/Upcoming Match Cards */}
+      {/* Temporarily commented out live match cards:
       <div className="flex overflow-x-auto snap-x gap-4 w-full pb-2">
         {loading && (
           <div className="text-on-surface-variant font-body-md text-sm py-8">Loading matches...</div>
@@ -121,6 +124,20 @@ export default function HomePage() {
             </Link>
           );
         })}
+      </div>
+      */}
+      <div className="w-full bg-surface-container-lowest border border-outline-variant rounded-xl p-8 sm:p-12 flex flex-col items-center justify-center text-center shadow-sm">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-4">
+          <span className="material-symbols-outlined text-3xl sm:text-4xl">
+            sports_cricket
+          </span>
+        </div>
+        <h3 className="font-headline font-bold text-xl sm:text-2xl text-on-surface mb-2">
+          Live Scores Coming Soon
+        </h3>
+        <p className="font-body-md text-sm sm:text-base text-on-surface-variant max-w-md">
+          We're working on bringing you real-time match coverage, ball-by-ball updates, and live scorecards. Stay tuned!
+        </p>
       </div>
 
       {/* Predict & Win Banner */}
