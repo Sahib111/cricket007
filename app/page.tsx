@@ -5,11 +5,13 @@ import Link from 'next/link';
 import type { MatchSummary } from '@/lib/cricapi';
 import { getMatchStatusLabel, getTeamScore, isWomensMatch, isRelevantMatch, isWithinNextWeek, formatMatchDate } from '@/lib/matchHelpers';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import SuggestGameModal from '@/app/_components/SuggestGameModal';
 
 export default function HomePage() {
   const [activeGender, setActiveGender] = useState<'mens' | 'womens'>('mens');
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSuggestModal, setShowSuggestModal] = useState(false);
 
   useEffect(() => {
     fetch('/api/matches')
@@ -221,8 +223,36 @@ export default function HomePage() {
               chevron_right
             </span>
           </Link>
+
+          <button
+            id="card-suggest-game"
+            onClick={() => setShowSuggestModal(true)}
+            className="group bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-xl p-6 sm:p-8 flex items-center justify-between hover:shadow-md hover:border-secondary hover:scale-[1.01] hover:bg-surface-container transition-all text-left w-full cursor-pointer"
+          >
+            <div className="flex items-center gap-5 sm:gap-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-surface-container-highest flex items-center justify-center text-3xl sm:text-4xl text-outline shrink-0">
+                <span className="material-symbols-outlined text-3xl sm:text-4xl">add_circle</span>
+              </div>
+              <div>
+                <div className="font-headline font-bold text-2xl sm:text-3xl text-primary group-hover:text-secondary transition-colors">
+                  Suggest a Game
+                </div>
+                <div className="font-body-md text-base sm:text-xl text-on-surface-variant mt-1">
+                  What should we build next?
+                </div>
+              </div>
+            </div>
+            <span className="material-symbols-outlined text-outline-variant group-hover:text-secondary group-hover:translate-x-1 transition-all text-3xl sm:text-4xl">
+              chevron_right
+            </span>
+          </button>
         </div>
       </section>
+
+      <SuggestGameModal
+        isOpen={showSuggestModal}
+        onClose={() => setShowSuggestModal(false)}
+      />
     </main>
   );
 }
