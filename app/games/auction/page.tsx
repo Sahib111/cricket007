@@ -180,10 +180,52 @@ export default function AuctionPage() {
   const yourTeamRating = yourTeam.reduce((s, e) => s + e.player.rating, 0);
   const computerTeamRating = computerTeam.reduce((s, e) => s + e.player.rating, 0);
 
-  // Set up each new lot — OR auto-award to computer if your team is already full
-  // but computer still needs players (fixes the stall where computer never bids).
+  function autoAssignRemainingToComputer(
+    updatedYourTeam: RosterEntry[],
+    queueIndices: number[],
+    messagePrefix: string = ''
+  ) {
+    const spotsNeeded = TEAM_SIZE - computerTeam.length;
+    if (spotsNeeded <= 0) {
+      setRoundOver(true);
+      setTimeout(() => setGameOver(true), 1200);
+      return;
+    }
+
+    const toAssignIndices = queueIndices.slice(0, spotsNeeded);
+    let compWallet = computerWallet;
+    const newCompEntries: RosterEntry[] = [];
+
+    for (const idx of toAssignIndices) {
+      const p = PLAYER_POOL[idx];
+      const price = Math.max(0, Math.min(compWallet, p.basePrice));
+      compWallet -= price;
+      newCompEntries.push({ player: p, price });
+      track(ANALYTICS_EVENTS.AUCTION_PLAYER_LOST, {
+        player_name: p.name,
+        player_role: p.role,
+        price,
+      });
+    }
+
+    const finalCompTeam = [...computerTeam, ...newCompEntries];
+    setComputerWallet(compWallet);
+    setComputerTeam(finalCompTeam);
+    setRoundOver(true);
+    setStatus(
+      messagePrefix
+        ? `${messagePrefix} Your team is complete — remaining players assigned to Computer.`
+        : 'Your team is complete — remaining players assigned to Computer.'
+    );
+
+    setTimeout(() => {
+      setGameOver(true);
+    }, 1400);
+  }
+
+  // Set up each new lot — OR auto-award remaining to computer if your team is already full
   useEffect(() => {
-    if (!currentPlayer) return;
+    if (!currentPlayer || gameOver) return;
     if (roundOver === false && lotInitialized.current) return;
     lotInitialized.current = true;
 
@@ -192,18 +234,7 @@ export default function AuctionPage() {
     setCurrentBid(currentPlayer.basePrice);
 
     if (yourFull && !computerFull) {
-      if (currentPlayer.basePrice <= computerWallet) {
-        setLeadingBidder('computer');
-        setStatus(`Your team is full — Computer is picking up ${currentPlayer.name}...`);
-        setTimeout(() => {
-          finalizeRound('computer');
-        }, 1000);
-      } else {
-        setStatus(`Computer can't afford ${currentPlayer.name} — unsold.`);
-        setTimeout(() => {
-          finalizeRound(null);
-        }, 800);
-      }
+      autoAssignRemainingToComputer(yourTeam, queue, 'Your team is full!');
       return;
     }
 
@@ -321,15 +352,31 @@ export default function AuctionPage() {
     if (!currentPlayer) return;
 
     if (winner === 'you') {
+      const nextYourTeam = [...yourTeam, { player: currentPlayer, price: currentBid }];
       setYourWallet((w) => w - currentBid);
-      setYourTeam((t) => [...t, { player: currentPlayer, price: currentBid }]);
-      setStatus(`You won ${currentPlayer.name} for 🪙${currentBid}!`);
+      setYourTeam(nextYourTeam);
       track(ANALYTICS_EVENTS.AUCTION_PLAYER_WON, {
         player_name: currentPlayer.name,
         player_role: currentPlayer.role,
         player_rating: currentPlayer.rating,
         price: currentBid,
       });
+
+      if (nextYourTeam.length >= TEAM_SIZE) {
+        if (computerTeam.length < TEAM_SIZE) {
+          autoAssignRemainingToComputer(
+            nextYourTeam,
+            queue.slice(1),
+            `You won ${currentPlayer.name} for 🪙${currentBid}!`
+          );
+        } else {
+          setStatus(`You won ${currentPlayer.name} for 🪙${currentBid}! Both teams complete.`);
+          setTimeout(() => setGameOver(true), 1200);
+        }
+        return;
+      }
+
+      setStatus(`You won ${currentPlayer.name} for 🪙${currentBid}!`);
     } else if (winner === 'computer') {
       setComputerWallet((w) => w - currentBid);
       setComputerTeam((t) => [...t, { player: currentPlayer, price: currentBid }]);
