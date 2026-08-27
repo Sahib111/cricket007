@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { PUZZLES, type Puzzle, type Hint } from '@/lib/cricketerPuzzles';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 
@@ -15,7 +15,7 @@ function pickRandomPuzzle(excludeIndex?: number): number {
 }
 
 export default function GuessCricketerPage() {
-  const { userId } = useProfile();
+  const { userId } = useProfileContext();
   const [puzzleIndex, setPuzzleIndex] = useState(0);
 
   useEffect(() => {

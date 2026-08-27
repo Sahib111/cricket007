@@ -1,6 +1,6 @@
 'use client';
 import { supabase } from '@/lib/supabase';
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { WORDLE_WORDS } from '@/lib/wordleWords';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
@@ -107,7 +107,7 @@ function evaluateGuess(guess: string, target: string): EvaluatedLetter[] {
 }
 
 export default function WordleGame() {
-  const { userId } = useProfile();
+  const { userId } = useProfileContext();
   const [targetWord, setTargetWord] = useState(DAILY.word);
   const [hint, setHint] = useState(DAILY.hint);
   const [mode, setMode] = useState<'daily' | 'paid'>('daily');

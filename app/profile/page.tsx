@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 
 export default function ProfilePage() {
-  const { profile, loading } = useProfile();
+  const { profile, loading } = useProfileContext();
 
   useEffect(() => {
     if (profile) {

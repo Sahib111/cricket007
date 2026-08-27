@@ -55,7 +55,6 @@ export function useProfile() {
 
         if (uid) {
             setUserId(uid);
-            identifyUser(uid, { auth_type: 'anonymous' });
 
             const { data: existingProfile } = await supabase
                 .from('profiles')
@@ -72,11 +71,15 @@ export function useProfile() {
                 } catch (e) { }
 
                 identifyUser(uid, {
+                    auth_type: 'anonymous',
                     display_name: existingProfile.display_name,
                     avatar_seed: existingProfile.avatar_seed,
                 });
-            } else if (!localName) {
-                setNeedsName(true);
+            } else {
+                identifyUser(uid, { auth_type: 'anonymous' });
+                if (!localName) {
+                    setNeedsName(true);
+                }
             }
         } else if (!localName) {
             setNeedsName(true);

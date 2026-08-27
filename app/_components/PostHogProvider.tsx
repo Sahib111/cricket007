@@ -6,8 +6,8 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
 import { getPostHog } from '@/lib/posthog';
 
-const POSTHOG_KEY = 'phc_yweTSyoTJ5TSJFAqR8xT6FTxco3WH2z7EBKDBQMjDA8x';
-const POSTHOG_HOST = 'https://us.i.posthog.com';
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
 
 /* ─── Pageview tracker ──────────────────────────────────────────── */
 function PageviewTracker() {
@@ -30,13 +30,15 @@ export default function PostHogProvider({ children }: { children: React.ReactNod
     useEffect(() => {
         if (!POSTHOG_KEY) return;
 
-        posthog.init(POSTHOG_KEY, {
-            api_host: POSTHOG_HOST,
-            person_profiles: 'identified_only',
-            capture_pageview: false,
-            capture_pageleave: true,
-            autocapture: true,
-        });
+        if (!posthog.__loaded) {
+            posthog.init(POSTHOG_KEY, {
+                api_host: POSTHOG_HOST,
+                person_profiles: 'identified_only',
+                capture_pageview: false,
+                capture_pageleave: true,
+                autocapture: true,
+            });
+        }
     }, []);
 
     if (!POSTHOG_KEY) {

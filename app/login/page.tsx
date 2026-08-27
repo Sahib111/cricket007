@@ -26,7 +26,7 @@ export default function LoginPage() {
                 track(ANALYTICS_EVENTS.AUTH_FAILED, { mode: 'signup', error: error.message });
             } else {
                 track(ANALYTICS_EVENTS.AUTH_SUCCESS, { mode: 'signup' });
-                if (data.user) identifyUser(data.user.id, { email, auth_type: 'email' });
+                if (data.user) identifyUser(data.user.id, { auth_type: 'email' });
                 router.push('/');
                 router.refresh();
             }
@@ -38,7 +38,7 @@ export default function LoginPage() {
                 track(ANALYTICS_EVENTS.AUTH_FAILED, { mode: 'login', error: error.message });
             } else {
                 track(ANALYTICS_EVENTS.AUTH_SUCCESS, { mode: 'login' });
-                if (data.user) identifyUser(data.user.id, { email, auth_type: 'email' });
+                if (data.user) identifyUser(data.user.id, { auth_type: 'email' });
                 router.push('/');
                 router.refresh();
             }

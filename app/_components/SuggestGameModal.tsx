@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from './ProfileProvider';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 
 interface SuggestGameModalProps {
@@ -11,7 +11,7 @@ interface SuggestGameModalProps {
 }
 
 export default function SuggestGameModal({ isOpen, onClose }: SuggestGameModalProps) {
-    const { userId } = useProfile();
+    const { userId } = useProfileContext();
     const [suggestionText, setSuggestionText] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);

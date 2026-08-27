@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { supabase } from '@/lib/supabase';
 import { getMatchStatusLabel, formatMatchDate } from '@/lib/matchHelpers';
 import type { MatchSummary } from '@/lib/cricapi';
@@ -13,7 +13,7 @@ export default function PredictMatchPage({
     params: Promise<{ matchId: string }>;
 }) {
     const [matchId, setMatchId] = useState<string | null>(null);
-    const { userId } = useProfile();
+    const { userId } = useProfileContext();
 
     const [match, setMatch] = useState<MatchSummary | null>(null);
     const [loading, setLoading] = useState(true);
@@ -34,6 +34,13 @@ export default function PredictMatchPage({
             .then((data) => {
                 const found = (data.matches ?? []).find((m: MatchSummary) => m.id === matchId);
                 setMatch(found ?? null);
+                if (found) {
+                    track(ANALYTICS_EVENTS.PREDICT_MATCH_SELECTED, {
+                        match_id: matchId,
+                        match_name: found.name,
+                        match_type: found.matchType,
+                    });
+                }
             })
             .catch(() => setMatch(null))
             .finally(() => setLoading(false));

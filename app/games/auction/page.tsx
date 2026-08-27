@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useProfile } from '@/lib/useProfile';
+import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 
 interface Player {
@@ -145,7 +145,15 @@ function getRoleIcon(role: string) {
 }
 
 export default function AuctionPage() {
-  const { userId } = useProfile();
+  const { userId } = useProfileContext();
+
+  useEffect(() => {
+    track(ANALYTICS_EVENTS.AUCTION_GAME_STARTED, {
+      lot_count: LOT_COUNT,
+      budget: BUDGET,
+      team_size: TEAM_SIZE,
+    });
+  }, []);
 
   const [queue, setQueue] = useState<number[]>(() => pickLotPlayers());
   const [roundsPlayed, setRoundsPlayed] = useState(0);
