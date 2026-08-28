@@ -18,15 +18,19 @@ export function HeaderNavbar() {
     if (!userId) return;
 
     async function loadWallet() {
-      const { data } = await supabase
-        .from('wallets')
-        .select('coins, streak')
-        .eq('user_id', userId)
-        .single();
+      try {
+        const { data } = await supabase
+          .from('wallets')
+          .select('coins, streak')
+          .eq('user_id', userId)
+          .maybeSingle();
 
-      if (data) {
-        setCoins(data.coins ?? 0);
-        setStreak(data.streak ?? 0);
+        if (data) {
+          setCoins(data.coins ?? 0);
+          setStreak(data.streak ?? 0);
+        }
+      } catch (e) {
+        console.error('Error loading wallet in navbar:', e);
       }
     }
 

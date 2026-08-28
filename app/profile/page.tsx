@@ -15,20 +15,15 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  if (loading) {
-    return (
-      <main className="w-full max-w-md mx-auto px-4 pt-10 pb-12 text-center">
-        <p className="text-sm text-on-surface-variant font-body-md">Loading profile...</p>
-      </main>
-    );
-  }
-
   if (!profile) {
     return (
       <main className="w-full max-w-md mx-auto px-4 pt-10 pb-12 text-center">
-        <p className="text-sm text-on-surface-variant font-body-md">
-          We couldn't find your profile — try reloading the page.
-        </p>
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 flex flex-col items-center text-center shadow-sm">
+          <p className="text-base font-bold text-on-surface font-headline mb-2">No Profile Set</p>
+          <p className="text-xs text-on-surface-variant font-body-md">
+            Please enter your name on the home page or refresh to create your player profile.
+          </p>
+        </div>
       </main>
     );
   }
