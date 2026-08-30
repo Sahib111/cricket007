@@ -5,10 +5,48 @@ import AppShell from "./_components/AppShell";
 import PostHogProvider from "./_components/PostHogProvider";
 import { ProfileProvider } from "./_components/ProfileProvider";
 
+const PRODUCTION_URL = "https://cricket007.online";
+
 export const metadata: Metadata = {
-  title: "Cricket 007 – Live Scores, Games & Leaderboard",
+  metadataBase: new URL(PRODUCTION_URL),
+  title: "Cricket007 — The Ultimate Cricket Fan Platform",
   description:
-    "Live scores, weekly leaderboard, stats, and cricket games (Cricket Wordle, Mini Auction, Guess the Cricketer) on Cricket 007.",
+    "Cricket007 is a cricket fan platform with live matches, predictions, games, player challenges and more.",
+  openGraph: {
+    title: "Cricket007 — The Ultimate Cricket Fan Platform",
+    description:
+      "Cricket007 is a cricket fan platform with live matches, predictions, games, player challenges and more.",
+    url: PRODUCTION_URL,
+    siteName: "Cricket007",
+    images: [
+      {
+        url: `${PRODUCTION_URL}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: "Cricket007 — The Ultimate Cricket Fan Platform",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Cricket007 — The Ultimate Cricket Fan Platform",
+    description:
+      "Cricket007 is a cricket fan platform with live matches, predictions, games, player challenges and more.",
+    images: [`${PRODUCTION_URL}/og-image.jpg`],
+  },
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
+  alternates: {
+    canonical: PRODUCTION_URL,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
