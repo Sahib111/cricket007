@@ -27,7 +27,7 @@ export default function GamesPage() {
                         Cricket Wordle
                     </h3>
                     <p className="font-body-md text-on-surface-variant text-sm mt-1">
-                        Guess the player of the day
+                        Guess the Word of the day
                     </p>
                 </Link>
 
