@@ -186,7 +186,7 @@ export default function HomePage() {
                   Cricket Wordle
                 </div>
                 <div className="font-body-md text-base sm:text-xl text-on-surface-variant mt-1">
-                  Daily Player Guess
+                  Daily Word Guess
                 </div>
               </div>
             </div>
