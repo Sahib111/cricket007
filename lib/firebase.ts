@@ -7,7 +7,7 @@
  */
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
-import { getMessaging, type Messaging } from 'firebase/messaging';
+import { getMessaging, isSupported, type Messaging } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -20,15 +20,12 @@ const firebaseConfig = {
 };
 
 /** Returns the (already-initialised or freshly-initialised) Firebase app. */
-function getFirebaseApp(): FirebaseApp {
+export function getFirebaseApp(): FirebaseApp {
   return getApps().length ? getApp() : initializeApp(firebaseConfig);
 }
 
 /**
- * Returns the Firebase Messaging instance.
- * Must only be called in a browser context (not during SSR).
- * Returns null in environments that don't support FCM (e.g. Safari without
- * notification permission, or SSR).
+ * Returns the Firebase Messaging instance safely.
  */
 export function getFirebaseMessaging(): Messaging | null {
   if (typeof window === 'undefined') return null;
@@ -38,6 +35,42 @@ export function getFirebaseMessaging(): Messaging | null {
     const app = getFirebaseApp();
     return getMessaging(app);
   } catch {
+    return null;
+  }
+}
+
+/**
+ * Asynchronously checks for messaging support and returns Messaging instance.
+ */
+export async function getFirebaseMessagingAsync(): Promise<Messaging | null> {
+  if (typeof window === 'undefined' || !('Notification' in window)) return null;
+
+  try {
+    const supported = await isSupported().catch(() => false);
+    if (!supported) return null;
+    const app = getFirebaseApp();
+    return getMessaging(app);
+  } catch (e) {
+    console.warn('[FCM] Messaging not supported or init error:', e);
+    return null;
+  }
+}
+
+/**
+ * Registers the FCM service worker and waits for it to become ready.
+ */
+export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+    return null;
+  }
+  try {
+    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+      scope: '/',
+    });
+    await navigator.serviceWorker.ready;
+    return registration;
+  } catch (err) {
+    console.warn('[FCM] Service worker registration error:', err);
     return null;
   }
 }

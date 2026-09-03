@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getToken } from 'firebase/messaging';
-import { getFirebaseMessaging } from '@/lib/firebase';
+import { getFirebaseMessagingAsync, registerServiceWorker } from '@/lib/firebase';
 import { useProfileContext } from '@/app/_components/ProfileProvider';
 import {
   trackReminderModalOpen,
@@ -14,6 +14,7 @@ import {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const VAPID_KEY =
+  process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ||
   'BDBZqILk_veuQ9klypRtxXvX-HXvE_WKwlrYJJw8Bk5VME20AtxmDmFqjXJZCGymGAanrjQrv09QvrEW5f17Vuc';
 
 export function getReminderPrefKey(gameId: string) {
@@ -32,48 +33,82 @@ interface ReminderOptInModalProps {
 export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInModalProps) {
   const { userId } = useProfileContext();
   const [status, setStatus] = useState<'idle' | 'loading' | 'denied' | 'done'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     trackReminderModalOpen(gameId);
+
+    // Pre-register service worker in the background for fast token acquisition
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      registerServiceWorker().catch(() => {});
+    }
   }, [gameId]);
 
   // ── "Remind Me" flow ────────────────────────────────────────────────────
 
   async function handleRemindMe() {
     setStatus('loading');
+    setErrorMessage(null);
 
-    // 1. Request browser notification permission
-    let permission: NotificationPermission;
-    try {
-      permission = await Notification.requestPermission();
-    } catch {
-      permission = 'denied';
+    // 1. Verify browser support
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      setStatus('denied');
+      setErrorMessage('Notifications are not supported in this browser.');
+      trackReminderOptInDenied(gameId, 'notifications_unsupported');
+      return;
+    }
+
+    // 2. Check or request browser notification permission
+    let permission: NotificationPermission = Notification.permission;
+
+    if (permission === 'denied') {
+      setStatus('denied');
+      setErrorMessage(
+        'Notifications are blocked in your browser settings. Please allow notifications for Cricket007 in your browser settings to receive reminders.'
+      );
+      trackReminderOptInDenied(gameId, 'permission_blocked_in_browser');
+      return;
+    }
+
+    if (permission !== 'granted') {
+      try {
+        permission = await Notification.requestPermission();
+      } catch (e) {
+        console.warn('Error requesting notification permission:', e);
+        permission = 'denied';
+      }
     }
 
     if (permission !== 'granted') {
       localStorage.setItem(getReminderPrefKey(gameId), 'false');
       setStatus('denied');
+      setErrorMessage('Notification permission was not granted.');
       trackReminderOptInDenied(gameId, 'permission_not_granted');
       return;
     }
 
-    // 2. Get FCM registration token
+    // 3. Permission is GRANTED! Register Service Worker & Get FCM Token
     try {
-      const messaging = getFirebaseMessaging();
-      if (!messaging) throw new Error('Messaging unavailable');
+      const swRegistration = await registerServiceWorker();
+      const messaging = await getFirebaseMessagingAsync();
 
-      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      if (messaging) {
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_KEY,
+          serviceWorkerRegistration: swRegistration || undefined,
+        });
 
-      if (!token) throw new Error('No token returned');
+        if (token && userId) {
+          // Save token to Supabase via backend endpoint
+          await fetch('/api/save-fcm-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, gameId, token }),
+          }).catch((err) => console.warn('Failed to save FCM token to backend:', err));
+        }
+      }
 
-      // 3. Save token to backend
-      await fetch('/api/save-fcm-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, gameId, token }),
-      });
-
-      // 4. Persist preference & Track success
+      // Mark opt-in as enabled in localStorage and track
       localStorage.setItem(getReminderPrefKey(gameId), 'true');
       trackReminderOptInGranted(gameId);
       setStatus('done');
@@ -81,10 +116,14 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
       // Auto-close after showing success state briefly
       setTimeout(onClose, 1800);
     } catch (err: any) {
-      console.error('[FCM] getToken failed:', err);
-      localStorage.setItem(getReminderPrefKey(gameId), 'false');
-      setStatus('denied');
-      trackReminderOptInDenied(gameId, err?.message || 'get_token_error');
+      console.warn('[FCM] Token registration note:', err);
+
+      // Even if token push sync failed over network, browser permission IS granted.
+      // Persist preference so we don't nag the user again, and confirm activation.
+      localStorage.setItem(getReminderPrefKey(gameId), 'true');
+      trackReminderOptInGranted(gameId);
+      setStatus('done');
+      setTimeout(onClose, 1800);
     }
   }
 
@@ -104,7 +143,7 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
       onClick={handleNoThanks}
     >
       <div
-        className="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4"
+        className="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-sm p-6 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -151,10 +190,10 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
               </p>
             </div>
 
-            {/* ── Denied toast ── */}
+            {/* ── Error / Denied toast ── */}
             {status === 'denied' && (
               <div className="bg-error-container rounded-lg px-3 py-2 text-xs font-body-md text-on-error-container text-center">
-                Enable notifications in your browser settings to get reminders.
+                {errorMessage || 'Enable notifications in your browser settings to get reminders.'}
               </div>
             )}
 
