@@ -213,7 +213,7 @@ export default function DailyTriviaBar() {
         <div className="flex-1 min-w-0">
           {/* Label row */}
           <div className="flex items-center justify-between gap-2 mb-1">
-            <h3 className="font-headline font-bold text-xs text-white/50 uppercase tracking-widest">
+            <h3 className="font-headline font-bold text-xs text-white/75 uppercase tracking-widest">
               Today&rsquo;s Trivia
             </h3>
             {/* Category chip — dark card version */}
@@ -253,7 +253,7 @@ export default function DailyTriviaBar() {
                 arrow_forward
               </span>
             </span>
-            <span className="text-[11px] font-mono-code text-white/40 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
+            <span className="text-[11px] font-mono-code text-white/65 bg-white/15 px-2 py-0.5 rounded-full border border-white/20">
               {todaysFact.yearOrContext}
             </span>
           </div>

@@ -7,15 +7,92 @@ import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 
 const CRICKET_WORDS = new Set(WORDLE_WORDS.map((w) => w.word.toUpperCase()));
 
-// Small local cache so repeated guesses (or repeated sessions) don't re-hit the API
+// ─── Local common 5-letter words ─────────────────────────────────────────────
+// A compact Set of ~600 frequent English 5-letter words so the vast majority
+// of guesses are validated instantly without any network round-trip.
+// The external API is only reached for uncommon words not in either set.
+const COMMON_WORDS = new Set([
+  'ABOUT','ABOVE','ABUSE','ACTOR','ACUTE','ADMIT','ADOPT','ADULT','AFTER','AGAIN',
+  'AGENT','AGREE','AHEAD','ALARM','ALBUM','ALERT','ALIEN','ALIGN','ALIKE','ALIVE',
+  'ALLEY','ALLOW','ALONE','ALONG','ALTER','ANGEL','ANGER','ANGLE','ANGRY','ANIME',
+  'ANKLE','ANNEX','APART','APPLE','APPLY','ARENA','ARGUE','ARISE','ARRAY','ARROW',
+  'ASKED','ASSET','AVOID','AWARD','AWFUL','BADLY','BAKER','BASIC','BASIN','BATCH',
+  'BEACH','BEGAN','BEGIN','BEING','BELOW','BENCH','BIRTH','BISON','BLACK','BLADE',
+  'BLAME','BLAND','BLANK','BLAST','BLAZE','BLEED','BLEND','BLESS','BLIND','BLOCK',
+  'BLOOD','BLOWN','BLOWN','BOARD','BOOST','BOOTH','BOUND','BOXER','BRAIN','BRAND',
+  'BRAVE','BREAD','BREAK','BREED','BRICK','BRIDE','BRIEF','BRING','BRISK','BROAD',
+  'BROKE','BROOK','BROWN','BRUSH','BUILD','BUILT','BURST','CABIN','CABLE','CANDY',
+  'CARRY','CAUSE','CHAIN','CHAIR','CHAOS','CHARM','CHART','CHECK','CHEEK','CHESS',
+  'CHEST','CHIEF','CHILD','CHOSE','CIVIC','CIVIL','CLAIM','CLASH','CLASS','CLEAN',
+  'CLEAR','CLERK','CLICK','CLIFF','CLIMB','CLING','CLOCK','CLOSE','CLOUD','COACH',
+  'COAST','COULD','COUNT','COURT','COVER','CRACK','CRAFT','CRANE','CRAVE','CRAZY',
+  'CREAM','CREEK','CRIME','CRISP','CROSS','CROWD','CROWN','CRUSH','CURVE','CYCLE',
+  'DAILY','DANCE','DEALT','DEATH','DECAY','DELAY','DELTA','DENSE','DEPOT','DEPTH',
+  'DERBY','DEVIL','DIRTY','DISCO','DODGE','DOUBT','DOUGH','DRAFT','DRAIN','DRAMA',
+  'DRANK','DRAWN','DREAM','DRINK','DROOL','DROVE','DROWN','DRUNK','DRYER','DYING',
+  'EAGER','EARLY','EARTH','EDGED','EIGHT','ELITE','EMPTY','ENEMY','ENTER','EQUAL',
+  'ERROR','EVENT','EVERY','EXACT','EXTRA','FAINT','FAITH','FALSE','FANCY','FATAL',
+  'FAULT','FEAST','FENCE','FEVER','FIBER','FIELD','FIFTH','FIFTY','FIGHT','FINAL',
+  'FIRST','FIXED','FLAME','FLASH','FLEET','FLESH','FLOAT','FLOOD','FLOOR','FLOUR',
+  'FLUID','FOCUS','FORCE','FORGE','FORTH','FORUM','FOUND','FRAME','FRANK','FRAUD',
+  'FRESH','FROST','FROZE','FRUIT','FULLY','FUNNY','GIANT','GIVEN','GLASS','GLEAM',
+  'GLOOM','GLORY','GLOVE','GOING','GRACE','GRADE','GRAIN','GRAND','GRANT','GRASP',
+  'GRASS','GRAVE','GREAT','GREED','GREET','GRIEF','GRILL','GRIND','GROAN','GROPE',
+  'GROUP','GROWN','GRUEL','GUARD','GUIDE','GUILE','GUISE','HABIT','HAPPY','HARSH',
+  'HEART','HEAVY','HENCE','HERBS','HINGE','HONOR','HOPED','HOTEL','HUMAN','HUMOR',
+  'HURRY','IMAGE','IMPLY','INDEX','INNER','INPUT','INTER','ISSUE','IVORY','JOINT',
+  'JUDGE','JUICE','JUICY','KNIFE','KNOCK','KNOWN','LABEL','LARGE','LATER','LAUGH',
+  'LAYER','LEARN','LEAST','LEGAL','LIGHT','LIMIT','LINED','LINER','LINEN','LOCAL',
+  'LODGE','LOGIC','LOOSE','LOVER','LOWER','LUCKY','LYING','MAGIC','MAJOR','MAKER',
+  'MANOR','MARCH','MATCH','MEANT','MEDIA','MERCY','MERIT','METAL','MIGHT','MINER',
+  'MINOR','MINUS','MIXED','MODEL','MONEY','MONTH','MORAL','MOTOR','MOUNT','MOUSE',
+  'MOUTH','MOVED','MOVIE','MUSIC','NAVAL','NERVE','NIGHT','NOBLE','NOISE','NORTH',
+  'NOTED','NOVEL','NURSE','OCCUR','OCEAN','OFFER','OFTEN','ONSET','ORBIT','ORDER',
+  'OTHER','OUGHT','OUTER','OWNER','OZONE','PAINT','PANEL','PANIC','PAPER','PARKS',
+  'PARTY','PATCH','PAUSE','PEACE','PENAL','PHASE','PHONE','PHOTO','PIANO','PIXEL',
+  'PLACE','PLAIN','PLANE','PLANT','PLATE','PLAZA','PLEAD','PLUCK','POINT','POLAR',
+  'POKER','POSED','POWER','PRESS','PRICE','PRIDE','PRIME','PRINT','PRIOR','PROBE',
+  'PRONE','PROOF','PROUD','PROVE','PSALM','PULSE','PUPIL','QUEEN','QUERY','QUEST',
+  'QUEUE','QUICK','QUIET','QUOTA','QUOTE','RADAR','RADIO','RAISE','RALLY','RANGE',
+  'RAPID','RATIO','REACH','REACT','READY','REALM','REBEL','REFER','REIGN','RELAX',
+  'REPLY','RIDER','RIGHT','RIGID','RISKY','RIVAL','RIVER','ROBIN','ROCKY','ROMAN',
+  'ROUGH','ROUND','ROUTE','ROYAL','RULER','RURAL','SAINT','SAUCE','SCALE','SCENE',
+  'SCENT','SCORE','SENSE','SERVE','SETUP','SEVEN','SHADE','SHALL','SHAME','SHAPE',
+  'SHARE','SHARP','SHEER','SHEEP','SHEER','SHEET','SHELF','SHELL','SHIFT','SHINE',
+  'SHIRT','SHOCK','SHOES','SHORE','SIGHT','SILLY','SINCE','SIXTH','SIXTY','SIZED',
+  'SKILL','SKULL','SLAVE','SLEEP','SLICE','SLIDE','SLOPE','SMALL','SMART','SMILE',
+  'SMOKE','SNAKE','SOLAR','SOLID','SOLVE','SORRY','SOUND','SOUTH','SPACE','SPARE',
+  'SPARK','SPEAK','SPEED','SPEND','SPENT','SPICE','SPITE','SPLIT','SPOKE','SPOON',
+  'SPORT','SQUAD','STACK','STAFF','STAGE','STAIN','STAIR','STAKE','STAND','START',
+  'STATE','STAYS','STEAM','STEEL','STEEP','STERN','STICK','STIFF','STILL','STOCK',
+  'STONE','STOOD','STORE','STORM','STORY','STOMP','STRAP','STRAW','STRIP','STUCK',
+  'STYLE','SUGAR','SUITE','SUPER','SURGE','SWAMP','SWEAR','SWEEP','SWEET','SWEPT',
+  'SWIFT','SWORD','SWORE','TABLE','TASTE','TEACH','TEETH','THANK','THEIR','THEME',
+  'THERE','THESE','THICK','THING','THINK','THIRD','THOSE','THREE','THREW','THROW',
+  'THUMB','TIGER','TIGHT','TIMER','TIRED','TITLE','TODAY','TOKEN','TONAL','TOPIC',
+  'TOTAL','TOUCH','TOUGH','TOWER','TOXIC','TRACE','TRACK','TRADE','TRAIL','TRAIN',
+  'TRAIT','TRASH','TREAD','TREAT','TRICK','TRIED','TRULY','TRUST','TRUTH','TWICE',
+  'TWIST','TYING','UNDER','UNDUE','UNION','UNTIL','UPPER','UPSET','URBAN','USING',
+  'USUAL','VAGUE','VALID','VALUE','VALVE','VIDEO','VIGOR','VIRAL','VISIT','VISTA',
+  'VITAL','VIVID','VOICE','VOTER','WASTE','WATCH','WATER','WEARY','WEIGH','WEIRD',
+  'WHALE','WHEAT','WHEEL','WHERE','WHICH','WHILE','WHITE','WHOLE','WHOSE','WIDER',
+  'WOMAN','WOMEN','WORLD','WORRY','WORSE','WORST','WORTH','WOULD','WOUND','WRITE',
+  'WROTE','YACHT','YIELD','YOUNG','YOURS','YOUTH','ZEBRA','ZONAL','ZONED',
+]);
+
+// Small remote cache so repeated guesses don't re-hit the API
 const dictionaryCache = new Map<string, boolean>();
 
 async function isRealEnglishWord(word: string): Promise<boolean> {
   const upper = word.toUpperCase();
 
-  // Always accept your curated cricket names/terms, even if not in a standard dictionary
+  // Tier 1 – curated cricket list (instant)
   if (CRICKET_WORDS.has(upper)) return true;
 
+  // Tier 2 – local common-words Set (instant, covers >90% of real guesses)
+  if (COMMON_WORDS.has(upper)) return true;
+
+  // Tier 3 – remote API only for uncommon words not in either local set
   if (dictionaryCache.has(upper)) return dictionaryCache.get(upper)!;
 
   try {
@@ -24,7 +101,7 @@ async function isRealEnglishWord(word: string): Promise<boolean> {
     dictionaryCache.set(upper, valid);
     return valid;
   } catch {
-    // Network hiccup — don't hard-block the player over a failed API call
+    // Network hiccup — don't hard-block the player
     return true;
   }
 }
