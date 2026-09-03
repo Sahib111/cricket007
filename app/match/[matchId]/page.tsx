@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react';
 import type { CricbuzzScorecard } from '@/lib/cricbuzz';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackScorecardView } from '@/lib/analytics';
 
 export default function MatchScoreboardPage({
     params,
@@ -19,7 +19,7 @@ export default function MatchScoreboardPage({
             .then((d) => {
                 setData(d.scorecard);
                 if (d.scorecard) {
-                    track(ANALYTICS_EVENTS.SCORECARD_VIEWED, { match_id: matchId });
+                    trackScorecardView(matchId);
                 }
             })
             .catch(() => setData(null))

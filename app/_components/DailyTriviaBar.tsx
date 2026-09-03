@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { triviaFacts } from '@/lib/triviaData';
 import type { TriviaCategory } from '@/lib/triviaData';
+import { trackTriviaCardClick, trackTriviaModalClose } from '@/lib/analytics';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -166,6 +167,16 @@ export default function DailyTriviaBar() {
 
   const meta = CATEGORY_META[todaysFact.category];
 
+  function handleOpenTrivia() {
+    setIsModalOpen(true);
+    trackTriviaCardClick(todaysFact.id, todaysFact.category, todaysFact.yearOrContext);
+  }
+
+  function handleCloseTrivia() {
+    setIsModalOpen(false);
+    trackTriviaModalClose(todaysFact.id);
+  }
+
   return (
     <>
       {/* ── Card ── */}
@@ -173,7 +184,7 @@ export default function DailyTriviaBar() {
         type="button"
         id="daily-trivia-bar"
         aria-label="Today's trivia — click to learn more"
-        onClick={() => setIsModalOpen(true)}
+        onClick={handleOpenTrivia}
         className="
           group w-full text-left
           bg-[linear-gradient(135deg,#001a52_0%,#002880_45%,#0a1f6e_100%)]
@@ -263,7 +274,7 @@ export default function DailyTriviaBar() {
       {/* ── Detail Modal ── */}
       <TriviaModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleCloseTrivia}
         fact={todaysFact}
       />
     </>

@@ -5,7 +5,7 @@ import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { supabase } from '@/lib/supabase';
 import { getMatchStatusLabel, formatMatchDate } from '@/lib/matchHelpers';
 import type { MatchSummary } from '@/lib/cricapi';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackPredictMatchSelect, trackPredictionSubmit } from '@/lib/analytics';
 
 export default function PredictMatchPage({
     params,
@@ -35,11 +35,7 @@ export default function PredictMatchPage({
                 const found = (data.matches ?? []).find((m: MatchSummary) => m.id === matchId);
                 setMatch(found ?? null);
                 if (found) {
-                    track(ANALYTICS_EVENTS.PREDICT_MATCH_SELECTED, {
-                        match_id: matchId,
-                        match_name: found.name,
-                        match_type: found.matchType,
-                    });
+                    trackPredictMatchSelect(matchId, found.name, found.matchType);
                 }
             })
             .catch(() => setMatch(null))
@@ -86,12 +82,7 @@ export default function PredictMatchPage({
             setSelectedTeam(team);
             setExistingStatus('pending');
             setSaved(true);
-            track(ANALYTICS_EVENTS.PREDICTION_SUBMITTED, {
-                match_id: matchId,
-                match_name: match.name,
-                predicted_team: team,
-                match_type: match.matchType,
-            });
+            trackPredictionSubmit(matchId, match.name, team, match.matchType);
         }
     }
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackGameCardClick } from '@/lib/analytics';
 import SuggestGameModal from '@/app/_components/SuggestGameModal';
 
 export default function GamesPage() {
@@ -17,7 +17,7 @@ export default function GamesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
                 <Link
                     href="/games/wordle"
-                    onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'wordle', source: 'games_hub' })}
+                    onClick={() => trackGameCardClick('wordle', 'games_hub')}
                     className="group relative rounded-xl overflow-hidden border border-outline-variant h-[220px] flex flex-col items-center justify-center text-center bg-gradient-to-br from-pitch-green/10 to-pitch-green/5 hover:shadow-md transition-all"
                 >
                     <span className="material-symbols-outlined text-5xl text-pitch-green mb-3">
@@ -33,7 +33,7 @@ export default function GamesPage() {
 
                 <Link
                     href="/games/auction"
-                    onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'auction', source: 'games_hub' })}
+                    onClick={() => trackGameCardClick('auction', 'games_hub')}
                     className="group relative rounded-xl overflow-hidden border border-outline-variant h-[220px] flex flex-col items-center justify-center text-center bg-gradient-to-br from-stadium-blue/10 to-stadium-blue/5 hover:shadow-md transition-all"
                 >
                     <span className="material-symbols-outlined text-5xl text-stadium-blue mb-3">
@@ -49,7 +49,7 @@ export default function GamesPage() {
 
                 <Link
                     href="/games/guess-cricketer"
-                    onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'guess-cricketer', source: 'games_hub' })}
+                    onClick={() => trackGameCardClick('guess-cricketer', 'games_hub')}
                     className="group relative rounded-xl overflow-hidden border border-outline-variant h-[220px] flex flex-col items-center justify-center text-center bg-gradient-to-br from-secondary/10 to-secondary/5 hover:shadow-md transition-all"
                 >
                     <span className="material-symbols-outlined text-5xl text-secondary mb-3">

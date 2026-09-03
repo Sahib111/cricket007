@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useProfileContext } from './ProfileProvider';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackNavLinkClick } from '@/lib/analytics';
 
 export function HeaderNavbar() {
   const pathname = usePathname();
@@ -77,7 +77,7 @@ export function HeaderNavbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  onClick={() => track(ANALYTICS_EVENTS.NAV_LINK_CLICKED, { link_name: link.name, source: 'desktop_header' })}
+                  onClick={() => trackNavLinkClick(link.name, 'desktop_header')}
                   className={`font-headline text-lg transition-colors px-2 py-1 rounded ${isActive
                     ? 'text-secondary font-bold border-b-2 border-secondary pb-1'
                     : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-high'
@@ -125,21 +125,24 @@ export function HeaderNavbar() {
             className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant cursor-pointer active:opacity-80 transition-all hover:ring-2 hover:ring-secondary ml-1 hidden sm:block bg-surface-container"
             aria-label="View your profile"
           >
-            {avatarUrl && (
+            {avatarUrl ? (
               <img
                 className="w-full h-full object-cover"
                 alt="Your avatar"
                 src={avatarUrl}
               />
+            ) : (
+              <div className="w-full h-full bg-primary text-on-primary flex items-center justify-center font-bold text-xs">
+                ?
+              </div>
             )}
           </Link>
 
-          {/* Mobile Menu Toggle Button */}
+          {/* Hamburger Mobile Toggle */}
           <button
-            type="button"
-            className="md:hidden text-primary p-1 rounded hover:bg-surface-container-high transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle navigation menu"
+            className="md:hidden p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high focus:outline-none"
+            aria-label="Toggle menu"
           >
             <span className="material-symbols-outlined text-2xl">
               {mobileMenuOpen ? 'close' : 'menu'}
@@ -162,7 +165,7 @@ export function HeaderNavbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                onClick={() => { setMobileMenuOpen(false); track(ANALYTICS_EVENTS.NAV_LINK_CLICKED, { link_name: link.name, source: 'mobile_drawer' }); }}
+                onClick={() => { setMobileMenuOpen(false); trackNavLinkClick(link.name, 'mobile_drawer'); }}
                 className={`block px-3 py-2 rounded-md text-base font-headline font-semibold transition-colors ${isActive
                   ? 'bg-surface-container-highest text-secondary font-bold'
                   : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
@@ -174,7 +177,7 @@ export function HeaderNavbar() {
           })}
           <Link
             href="/profile"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={() => { setMobileMenuOpen(false); trackNavLinkClick('Profile', 'mobile_drawer'); }}
             className="block px-3 py-2 rounded-md text-base font-headline font-semibold text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors"
           >
             Profile
@@ -252,7 +255,7 @@ export function BottomTabBar() {
               key={tab.name}
               id={`tab-${tab.name.toLowerCase().replace(/\s+/g, '-')}`}
               href={tab.href}
-              onClick={() => track(ANALYTICS_EVENTS.NAV_LINK_CLICKED, { link_name: tab.name, source: 'bottom_tab' })}
+              onClick={() => trackNavLinkClick(tab.name, 'bottom_tab')}
               className={`flex flex-col items-center justify-center gap-0.5 transition-colors py-1 ${isActive ? 'text-secondary font-bold' : 'text-on-surface-variant'
                 }`}
               aria-current={isActive ? 'page' : undefined}

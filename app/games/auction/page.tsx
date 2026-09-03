@@ -3,7 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useProfileContext } from '@/app/_components/ProfileProvider';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import {
+  trackAuctionStart,
+  trackAuctionBidPlaced,
+  trackAuctionPass,
+  trackAuctionPlayerWon,
+  trackAuctionPlayerLost,
+  trackAuctionComplete,
+  trackCoinsEarned,
+} from '@/lib/analytics';
 
 interface Player {
   name: string;
@@ -148,11 +156,7 @@ export default function AuctionPage() {
   const { userId } = useProfileContext();
 
   useEffect(() => {
-    track(ANALYTICS_EVENTS.AUCTION_GAME_STARTED, {
-      lot_count: LOT_COUNT,
-      budget: BUDGET,
-      team_size: TEAM_SIZE,
-    });
+    trackAuctionStart(LOT_COUNT, BUDGET, TEAM_SIZE);
   }, []);
 
   const [queue, setQueue] = useState<number[]>(() => pickLotPlayers());
@@ -201,11 +205,11 @@ export default function AuctionPage() {
       const price = Math.max(0, Math.min(compWallet, p.basePrice));
       compWallet -= price;
       newCompEntries.push({ player: p, price });
-      track(ANALYTICS_EVENTS.AUCTION_PLAYER_LOST, {
-        player_name: p.name,
-        player_role: p.role,
-        price,
-      });
+      trackAuctionPlayerLost(
+        p.name,
+        p.role,
+        price
+      );
     }
 
     const finalCompTeam = [...computerTeam, ...newCompEntries];
@@ -310,17 +314,17 @@ export default function AuctionPage() {
       setRewardEarned(reward);
       saveResult(outcome, reward);
 
-      track(ANALYTICS_EVENTS.AUCTION_GAME_COMPLETE, {
+      trackAuctionComplete({
         outcome,
-        coins_earned: reward,
-        your_team_size: yourTeam.length,
-        computer_team_size: computerTeam.length,
-        your_rating: yourRatingSum,
-        computer_rating: compRatingSum,
-        budget_spent: BUDGET - yourWallet,
+        coinsEarned: reward,
+        yourTeamSize: yourTeam.length,
+        computerTeamSize: computerTeam.length,
+        yourRating: yourRatingSum,
+        computerRating: compRatingSum,
+        budgetSpent: BUDGET - yourWallet,
       });
       if (reward > 0) {
-        track(ANALYTICS_EVENTS.COINS_EARNED, { amount: reward, source: 'auction' });
+        trackCoinsEarned(reward, 'auction');
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -355,12 +359,12 @@ export default function AuctionPage() {
       const nextYourTeam = [...yourTeam, { player: currentPlayer, price: currentBid }];
       setYourWallet((w) => w - currentBid);
       setYourTeam(nextYourTeam);
-      track(ANALYTICS_EVENTS.AUCTION_PLAYER_WON, {
-        player_name: currentPlayer.name,
-        player_role: currentPlayer.role,
-        player_rating: currentPlayer.rating,
-        price: currentBid,
-      });
+      trackAuctionPlayerWon(
+        currentPlayer.name,
+        currentPlayer.role,
+        currentPlayer.rating,
+        currentBid
+      );
 
       if (nextYourTeam.length >= TEAM_SIZE) {
         if (computerTeam.length < TEAM_SIZE) {
@@ -381,11 +385,11 @@ export default function AuctionPage() {
       setComputerWallet((w) => w - currentBid);
       setComputerTeam((t) => [...t, { player: currentPlayer, price: currentBid }]);
       setStatus(`Computer won ${currentPlayer.name} for 🪙${currentBid}.`);
-      track(ANALYTICS_EVENTS.AUCTION_PLAYER_LOST, {
-        player_name: currentPlayer.name,
-        player_role: currentPlayer.role,
-        price: currentBid,
-      });
+      trackAuctionPlayerLost(
+        currentPlayer.name,
+        currentPlayer.role,
+        currentBid
+      );
     } else {
       setStatus(`${currentPlayer.name} went unsold — back in the queue.`);
     }
@@ -401,11 +405,11 @@ export default function AuctionPage() {
     setCurrentBid(nextBid);
     setLeadingBidder('you');
     setStatus('You are leading. Waiting for computer...');
-    track(ANALYTICS_EVENTS.AUCTION_BID_PLACED, {
-      player_name: currentPlayer.name,
-      bid_amount: nextBid,
-      wallet_remaining: yourWallet - nextBid,
-    });
+    trackAuctionBidPlaced(
+      currentPlayer.name,
+      nextBid,
+      yourWallet - nextBid
+    );
 
     setTimeout(() => {
       if (computerFull) {
@@ -430,11 +434,11 @@ export default function AuctionPage() {
 
   function handlePass() {
     if (roundOver) return;
-    track(ANALYTICS_EVENTS.AUCTION_PASS, {
-      player_name: currentPlayer?.name,
-      current_bid: currentBid,
-      leading_bidder: leadingBidder,
-    });
+    trackAuctionPass(
+      currentPlayer?.name,
+      currentBid,
+      leadingBidder
+    );
     if (leadingBidder === 'computer' || leadingBidder === null) {
       finalizeRound(leadingBidder === 'computer' ? 'computer' : null);
     } else {

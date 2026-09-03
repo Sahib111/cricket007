@@ -2,16 +2,14 @@
 
 import { useEffect } from 'react';
 import { useProfileContext } from '@/app/_components/ProfileProvider';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackProfileView } from '@/lib/analytics';
 
 export default function ProfilePage() {
   const { profile, loading } = useProfileContext();
 
   useEffect(() => {
     if (profile) {
-      track(ANALYTICS_EVENTS.PROFILE_VIEWED, {
-        display_name: profile.displayName,
-      });
+      trackProfileView(profile.displayName);
     }
   }, [profile]);
 

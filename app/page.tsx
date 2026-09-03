@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackPredictBannerClick, trackGameCardClick } from '@/lib/analytics';
 import SuggestGameModal from '@/app/_components/SuggestGameModal';
 import DailyTriviaBar from '@/app/_components/DailyTriviaBar';
 
@@ -36,7 +36,7 @@ export default function HomePage() {
       {/* Predict & Win Banner */}
       <Link
         href="/predict"
-        onClick={() => track(ANALYTICS_EVENTS.PREDICT_BANNER_CLICKED, { source: 'home' })}
+        onClick={() => trackPredictBannerClick('home')}
         className="w-full bg-gradient-to-br from-secondary to-secondary-container text-on-primary rounded-xl p-6 flex items-center justify-between cursor-pointer hover:shadow-md transition-all shadow-md mt-2"
       >
         <div className="flex items-center gap-4">
@@ -65,7 +65,7 @@ export default function HomePage() {
           <Link
             id="card-wordle"
             href="/games/wordle"
-            onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'wordle', source: 'home' })}
+            onClick={() => trackGameCardClick('wordle', 'home')}
             className="group bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-6 sm:p-8 flex items-center justify-between hover:shadow-md hover:border-secondary hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-5 sm:gap-6">
@@ -89,7 +89,7 @@ export default function HomePage() {
           <Link
             id="card-auction"
             href="/games/auction"
-            onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'auction', source: 'home' })}
+            onClick={() => trackGameCardClick('auction', 'home')}
             className="group bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-6 sm:p-8 flex items-center justify-between hover:shadow-md hover:border-secondary hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-5 sm:gap-6">
@@ -113,7 +113,7 @@ export default function HomePage() {
           <Link
             id="card-guess-cricketer"
             href="/games/guess-cricketer"
-            onClick={() => track(ANALYTICS_EVENTS.GAME_CARD_CLICKED, { game: 'guess-cricketer', source: 'home' })}
+            onClick={() => trackGameCardClick('guess-cricketer', 'home')}
             className="group bg-surface-container-lowest border-2 border-outline-variant rounded-xl p-6 sm:p-8 flex items-center justify-between hover:shadow-md hover:border-secondary hover:scale-[1.01] transition-all"
           >
             <div className="flex items-center gap-5 sm:gap-6">

@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { track, identifyUser, ANALYTICS_EVENTS } from '@/lib/analytics';
+import {
+    trackAuthAttempt,
+    trackAuthSuccess,
+    trackAuthFail,
+    identifyUser,
+} from '@/lib/analytics';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -18,26 +23,26 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
 
+        trackAuthAttempt(mode);
+
         if (mode === 'signup') {
-            track(ANALYTICS_EVENTS.SIGNUP_ATTEMPTED);
             const { data, error } = await supabase.auth.signUp({ email, password });
             if (error) {
                 setError(error.message);
-                track(ANALYTICS_EVENTS.AUTH_FAILED, { mode: 'signup', error: error.message });
+                trackAuthFail('signup', error.message);
             } else {
-                track(ANALYTICS_EVENTS.AUTH_SUCCESS, { mode: 'signup' });
+                trackAuthSuccess('signup');
                 if (data.user) identifyUser(data.user.id, { auth_type: 'email' });
                 router.push('/');
                 router.refresh();
             }
         } else {
-            track(ANALYTICS_EVENTS.LOGIN_ATTEMPTED);
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) {
                 setError(error.message);
-                track(ANALYTICS_EVENTS.AUTH_FAILED, { mode: 'login', error: error.message });
+                trackAuthFail('login', error.message);
             } else {
-                track(ANALYTICS_EVENTS.AUTH_SUCCESS, { mode: 'login' });
+                trackAuthSuccess('login');
                 if (data.user) identifyUser(data.user.id, { auth_type: 'email' });
                 router.push('/');
                 router.refresh();

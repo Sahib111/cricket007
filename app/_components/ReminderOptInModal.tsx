@@ -1,9 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getToken } from 'firebase/messaging';
 import { getFirebaseMessaging } from '@/lib/firebase';
 import { useProfileContext } from '@/app/_components/ProfileProvider';
+import {
+  trackReminderModalOpen,
+  trackReminderOptInGranted,
+  trackReminderOptInDenied,
+  trackReminderOptInDeclined,
+} from '@/lib/analytics';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -27,6 +33,10 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
   const { userId } = useProfileContext();
   const [status, setStatus] = useState<'idle' | 'loading' | 'denied' | 'done'>('idle');
 
+  useEffect(() => {
+    trackReminderModalOpen(gameId);
+  }, [gameId]);
+
   // ── "Remind Me" flow ────────────────────────────────────────────────────
 
   async function handleRemindMe() {
@@ -43,6 +53,7 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
     if (permission !== 'granted') {
       localStorage.setItem(getReminderPrefKey(gameId), 'false');
       setStatus('denied');
+      trackReminderOptInDenied(gameId, 'permission_not_granted');
       return;
     }
 
@@ -62,16 +73,18 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
         body: JSON.stringify({ userId, gameId, token }),
       });
 
-      // 4. Persist preference
+      // 4. Persist preference & Track success
       localStorage.setItem(getReminderPrefKey(gameId), 'true');
+      trackReminderOptInGranted(gameId);
       setStatus('done');
 
       // Auto-close after showing success state briefly
       setTimeout(onClose, 1800);
-    } catch (err) {
+    } catch (err: any) {
       console.error('[FCM] getToken failed:', err);
       localStorage.setItem(getReminderPrefKey(gameId), 'false');
       setStatus('denied');
+      trackReminderOptInDenied(gameId, err?.message || 'get_token_error');
     }
   }
 
@@ -79,6 +92,7 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
 
   function handleNoThanks() {
     localStorage.setItem(getReminderPrefKey(gameId), 'false');
+    trackReminderOptInDeclined(gameId);
     onClose();
   }
 

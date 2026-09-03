@@ -3,7 +3,15 @@ import { supabase } from '@/lib/supabase';
 import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { WORDLE_WORDS } from '@/lib/wordleWords';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import {
+  trackWordleStart,
+  trackWordleGuess,
+  trackWordleGameWon,
+  trackWordleGameLost,
+  trackWordleReplay,
+  trackCoinsEarned,
+  trackCoinsSpent,
+} from '@/lib/analytics';
 import ReminderOptInModal, { getReminderPrefKey } from '@/app/_components/ReminderOptInModal';
 
 const CRICKET_WORDS = new Set(WORDLE_WORDS.map((w) => w.word.toUpperCase()));
@@ -240,7 +248,7 @@ export default function WordleGame() {
   // Track game start once userId and word are ready
   useEffect(() => {
     if (!checkingToday && !dailyAlreadyPlayed) {
-      track(ANALYTICS_EVENTS.WORDLE_GAME_STARTED, { mode, word_length: WORD_LENGTH });
+      trackWordleStart(mode, WORD_LENGTH);
     }
   }, [checkingToday, dailyAlreadyPlayed]);
 
@@ -364,29 +372,17 @@ export default function WordleGame() {
     setGuesses(newGuesses);
     setCurrentGuess('');
 
-    track(ANALYTICS_EVENTS.WORDLE_GUESS_SUBMITTED, {
-      guess: currentGuess,
-      attempt_number: newGuesses.length,
-      mode,
-    });
+    trackWordleGuess(currentGuess, newGuesses.length, mode);
 
     if (currentGuess === targetWord) {
       setGameStatus('WON');
       saveResult('WON', newGuesses.length);
-      track(ANALYTICS_EVENTS.WORDLE_GAME_WON, {
-        attempts: newGuesses.length,
-        mode,
-        target_word: targetWord,
-      });
-      track(ANALYTICS_EVENTS.COINS_EARNED, { amount: WIN_REWARD, source: 'wordle' });
+      trackWordleGameWon(newGuesses.length, mode, targetWord, WIN_REWARD);
+      trackCoinsEarned(WIN_REWARD, 'wordle');
     } else if (newGuesses.length >= MAX_ATTEMPTS) {
       setGameStatus('LOST');
       saveResult('LOST', newGuesses.length);
-      track(ANALYTICS_EVENTS.WORDLE_GAME_LOST, {
-        attempts: newGuesses.length,
-        mode,
-        target_word: targetWord,
-      });
+      trackWordleGameLost(newGuesses.length, mode, targetWord);
     }
   }, [currentGuess, guesses, isGameOver, isValidating, targetWord, mode, userId]);
 
@@ -439,7 +435,8 @@ export default function WordleGame() {
   async function handlePlayAgainPaid() {
     if (!userId || walletCoins < REPLAY_COST) return;
 
-    track(ANALYTICS_EVENTS.COINS_SPENT, { amount: REPLAY_COST, source: 'wordle_replay' });
+    trackWordleReplay(REPLAY_COST);
+    trackCoinsSpent(REPLAY_COST, 'wordle_replay');
 
     const newTotal = walletCoins - REPLAY_COST;
     await supabase
@@ -457,7 +454,7 @@ export default function WordleGame() {
     setGameStatus('IN_PROGRESS');
     resultSaved.current = false;
 
-    track(ANALYTICS_EVENTS.WORDLE_GAME_STARTED, { mode: 'paid', word_length: WORD_LENGTH });
+    trackWordleStart('paid', WORD_LENGTH);
   }
 
   if (checkingToday) {

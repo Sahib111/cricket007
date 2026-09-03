@@ -4,7 +4,16 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { PUZZLES, type Puzzle, type Hint } from '@/lib/cricketerPuzzles';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import {
+  trackGuessStart,
+  trackGuessHintReveal,
+  trackGuessSubmit,
+  trackGuessCorrect,
+  trackCoinsEarned,
+  trackGuessIncorrect,
+  trackGuessGameOver,
+  trackGuessNextRound,
+} from '@/lib/analytics';
 
 function pickRandomPuzzle(excludeIndex?: number): number {
   let idx = Math.floor(Math.random() * PUZZLES.length);
@@ -21,7 +30,7 @@ export default function GuessCricketerPage() {
   useEffect(() => {
     const idx = pickRandomPuzzle();
     setPuzzleIndex(idx);
-    track(ANALYTICS_EVENTS.GUESS_GAME_STARTED, { puzzle_answer: PUZZLES[idx].answer });
+    trackGuessStart(PUZZLES[idx].answer);
   }, []);
 
   const [revealedCount, setRevealedCount] = useState(1);
@@ -38,11 +47,11 @@ export default function GuessCricketerPage() {
     if (revealedCount < puzzle.hints.length && !gameOver) {
       const nextHint = revealedCount + 1;
       setRevealedCount(nextHint);
-      track(ANALYTICS_EVENTS.GUESS_HINT_REVEALED, {
-        hint_number: nextHint,
-        total_hints: puzzle.hints.length,
-        remaining_reward: puzzle.hints[nextHint - 1].reward,
-      });
+      trackGuessHintReveal(
+        nextHint,
+        puzzle.hints.length,
+        puzzle.hints[nextHint - 1].reward
+      );
     }
   }
 
@@ -77,7 +86,7 @@ export default function GuessCricketerPage() {
     if (!answer.trim() || gameOver) return;
 
     const isCorrect = answer.trim().toUpperCase() === puzzle.answer;
-    track(ANALYTICS_EVENTS.GUESS_SUBMITTED, { answer: answer.trim(), is_correct: isCorrect });
+    trackGuessSubmit(answer.trim(), isCorrect);
 
     if (isCorrect) {
       const reward = puzzle.hints[revealedCount - 1].reward;
@@ -86,20 +95,20 @@ export default function GuessCricketerPage() {
       setResult('correct');
       setGameOver(true);
       saveResult('won', revealedCount, reward);
-      track(ANALYTICS_EVENTS.GUESS_CORRECT, {
-        hints_used: revealedCount,
-        coins_won: reward,
-        puzzle_answer: puzzle.answer,
-      });
-      track(ANALYTICS_EVENTS.COINS_EARNED, { amount: reward, source: 'guess_cricketer' });
+      trackGuessCorrect(
+        revealedCount,
+        reward,
+        puzzle.answer
+      );
+      trackCoinsEarned(reward, 'guess_cricketer');
     } else {
       setResult('incorrect');
       setAnswer('');
-      track(ANALYTICS_EVENTS.GUESS_INCORRECT, { hints_used: revealedCount });
+      trackGuessIncorrect(revealedCount);
       if (revealedCount >= puzzle.hints.length) {
         setGameOver(true);
         saveResult('lost', revealedCount, 0);
-        track(ANALYTICS_EVENTS.GUESS_GAME_OVER, { puzzle_answer: puzzle.answer, hints_used: revealedCount });
+        trackGuessGameOver(puzzle.answer, revealedCount);
       }
     }
   }
@@ -113,11 +122,11 @@ export default function GuessCricketerPage() {
     setCoinsWon(null);
     setGameOver(false);
     setRoundsPlayed((prev) => prev + 1);
-    track(ANALYTICS_EVENTS.GUESS_NEXT_ROUND, {
-      round_number: roundsPlayed + 2,
-      total_coins_session: totalCoins,
-      puzzle_answer: PUZZLES[nextIndex].answer,
-    });
+    trackGuessNextRound(
+      roundsPlayed + 2,
+      totalCoins,
+      PUZZLES[nextIndex].answer
+    );
   }
 
   return (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
-import { identifyUser, track, ANALYTICS_EVENTS } from './analytics';
+import { identifyUser, trackNameSubmit, trackCoinsEarned } from './analytics';
 
 const AVATAR_SEEDS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 const STARTING_COINS = 100;
@@ -159,7 +159,7 @@ export function useProfile() {
         } catch (e) { }
 
         // 3. Track name submission
-        track(ANALYTICS_EVENTS.NAME_SUBMITTED, { display_name: cleanName });
+        trackNameSubmit(cleanName);
 
         // 4. Non-blocking background sync to Supabase
         (async () => {
@@ -185,10 +185,7 @@ export function useProfile() {
                     null
                 );
 
-                track(ANALYTICS_EVENTS.COINS_EARNED, {
-                    amount: STARTING_COINS,
-                    source: 'signup_bonus',
-                });
+                trackCoinsEarned(STARTING_COINS, 'signup_bonus');
             } catch (err) {
                 console.error('Failed to sync profile to database:', err);
             }

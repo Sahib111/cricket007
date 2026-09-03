@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useProfileContext } from './ProfileProvider';
-import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { trackSuggestModalOpen, trackGameSuggestionSubmit } from '@/lib/analytics';
 
 interface SuggestGameModalProps {
     isOpen: boolean;
@@ -22,7 +22,7 @@ export default function SuggestGameModal({ isOpen, onClose }: SuggestGameModalPr
             setSuggestionText('');
             setSubmitError(null);
             setSubmitted(false);
-            track(ANALYTICS_EVENTS.SUGGEST_MODAL_OPENED);
+            trackSuggestModalOpen();
         }
     }, [isOpen]);
 
@@ -57,7 +57,7 @@ export default function SuggestGameModal({ isOpen, onClose }: SuggestGameModalPr
 
         setSubmitted(true);
         setSuggestionText('');
-        track(ANALYTICS_EVENTS.GAME_SUGGESTION_SUBMITTED, { suggestion_length: trimmed.length });
+        trackGameSuggestionSubmit(trimmed.length);
     }
 
     return (
