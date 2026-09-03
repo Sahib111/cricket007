@@ -3,7 +3,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Firebase Cloud Function — Daily Game Reminder
  *
- * Scheduled trigger: runs once per day at 03:30 UTC (= 9:00 AM IST).
+ * Scheduled trigger: runs once per day at 12:30 UTC (= 6:00 PM IST).
  * Queries Supabase for all FCM tokens registered for 'wordle', checks if each
  * user has already played today, and sends a push notification to those who
  * haven't.
@@ -61,8 +61,8 @@ async function deleteStaleToken(userId, gameId) {
 
 exports.sendDailyWordleReminder = onSchedule(
   {
-    // 9:00 AM IST = 03:30 UTC
-    schedule: '30 3 * * *',
+    // 6:00 PM IST = 12:30 UTC
+    schedule: '30 12 * * *',
     timeZone: 'UTC',
     // Retry once on failure
     retryCount: 1,

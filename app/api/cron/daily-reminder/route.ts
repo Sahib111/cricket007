@@ -6,7 +6,7 @@ import { getAdminMessaging } from '@/lib/firebaseAdmin';
  * GET /api/cron/daily-reminder
  * ─────────────────────────────────────────────────────────────────────────────
  * Automated Daily Reminder Cron Handler.
- * Triggered automatically every day (e.g. at 9:00 AM IST / 03:30 UTC).
+ * Triggered automatically every day (e.g. at 6:00 PM IST / 12:30 UTC).
  *
  * 1. Queries Supabase `fcm_tokens` for all 'wordle' subscribers.
  * 2. Checks Supabase `game_results` to see who already played Wordle today.

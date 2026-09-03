@@ -175,7 +175,7 @@ export default function ReminderOptInModal({ gameId, onClose }: ReminderOptInMod
               You&rsquo;re set!
             </h3>
             <p className="font-body-md text-sm text-on-surface-variant mt-1">
-              We&rsquo;ll remind you at 9 AM every day.
+              We&rsquo;ll remind you at 6 PM every day.
             </p>
           </div>
         ) : (
