@@ -4,6 +4,7 @@ import { useProfileContext } from '@/app/_components/ProfileProvider';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { WORDLE_WORDS } from '@/lib/wordleWords';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import ReminderOptInModal, { getReminderPrefKey } from '@/app/_components/ReminderOptInModal';
 
 const CRICKET_WORDS = new Set(WORDLE_WORDS.map((w) => w.word.toUpperCase()));
 
@@ -197,6 +198,7 @@ export default function WordleGame() {
   const [checkingToday, setCheckingToday] = useState(true);
   const [dailyAlreadyPlayed, setDailyAlreadyPlayed] = useState(false);
   const [walletCoins, setWalletCoins] = useState(0);
+  const [showReminderModal, setShowReminderModal] = useState(false);
   const resultSaved = useRef(false);
 
   const isGameOver = gameStatus !== 'IN_PROGRESS';
@@ -308,6 +310,13 @@ export default function WordleGame() {
 
     if (mode === 'daily') {
       setDailyAlreadyPlayed(true);
+    }
+
+    // Show reminder opt-in once after game ends, only if user hasn't set a preference yet
+    const prefKey = getReminderPrefKey('wordle');
+    if (typeof window !== 'undefined' && localStorage.getItem(prefKey) === null) {
+      // Small delay so the game-over banner renders first
+      setTimeout(() => setShowReminderModal(true), 1200);
     }
   }
 
@@ -600,6 +609,14 @@ export default function WordleGame() {
               : `Play Again — 🪙${REPLAY_COST}`}
           </button>
         </div>
+      )}
+
+      {/* Daily Reminder Opt-In Modal */}
+      {showReminderModal && (
+        <ReminderOptInModal
+          gameId="wordle"
+          onClose={() => setShowReminderModal(false)}
+        />
       )}
 
       {/* Keyboard */}
