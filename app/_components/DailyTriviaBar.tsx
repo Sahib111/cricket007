@@ -17,35 +17,52 @@ function getDayOfYear(): number {
 
 const CATEGORY_META: Record<
   TriviaCategory,
-  { label: string; icon: string; colour: string; bg: string }
+  {
+    label: string;
+    icon: string;
+    // Light-surface modal chips
+    colour: string;
+    bg: string;
+    // Dark-card chips
+    cardColour: string;
+    cardBg: string;
+  }
 > = {
   history: {
     label: 'History',
     icon: 'history_edu',
     colour: 'text-primary',
     bg: 'bg-primary/10',
+    cardColour: 'text-[#b5c4ff]',
+    cardBg: 'bg-white/10',
   },
   records: {
     label: 'Records',
     icon: 'emoji_events',
     colour: 'text-secondary',
     bg: 'bg-secondary/10',
+    cardColour: 'text-[#ffb5a0]',
+    cardBg: 'bg-white/10',
   },
   laws: {
     label: 'Laws',
     icon: 'gavel',
     colour: 'text-[#006A50]',
     bg: 'bg-[#006A50]/10',
+    cardColour: 'text-[#6effd4]',
+    cardBg: 'bg-white/10',
   },
   stats: {
     label: 'Statistics',
     icon: 'bar_chart',
     colour: 'text-tertiary',
     bg: 'bg-tertiary/10',
+    cardColour: 'text-[#ffb59f]',
+    cardBg: 'bg-white/10',
   },
 };
 
-// ─── Modal ──────────────────────────────────────────────────────────────────
+// ─── Modal (light-themed, stays readable) ────────────────────────────────────
 
 interface TriviaModalProps {
   isOpen: boolean;
@@ -59,7 +76,7 @@ function TriviaModal({ isOpen, onClose, fact }: TriviaModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
       onClick={onClose}
     >
       <div
@@ -107,7 +124,7 @@ function TriviaModal({ isOpen, onClose, fact }: TriviaModalProps) {
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-headline font-bold ${meta.bg} ${meta.colour}`}
           >
             <span
-              className="material-symbols-outlined text-sm"
+              className="material-symbols-outlined"
               aria-hidden="true"
               style={{ fontSize: '14px' }}
             >
@@ -159,20 +176,33 @@ export default function DailyTriviaBar() {
         onClick={() => setIsModalOpen(true)}
         className="
           group w-full text-left
-          bg-surface-container-lowest border border-outline-variant
-          rounded-xl py-4 px-5 sm:py-5 sm:px-6
+          bg-[linear-gradient(135deg,#001a52_0%,#002880_45%,#0a1f6e_100%)]
+          border border-white/10
+          rounded-xl py-5 px-5 sm:py-6 sm:px-7
           flex items-start gap-4
-          shadow-sm hover:shadow-md hover:border-primary/40
-          transition-all cursor-pointer
+          shadow-lg hover:shadow-[0_8px_32px_rgba(0,40,128,0.45)]
+          hover:brightness-110
+          transition-all duration-200 cursor-pointer
+          relative overflow-hidden
         "
       >
+        {/* Subtle radial glow behind icon */}
+        <div
+          className="absolute top-0 left-0 w-40 h-40 rounded-full opacity-20 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, #4d80ff 0%, transparent 70%)',
+            transform: 'translate(-20%, -30%)',
+          }}
+          aria-hidden="true"
+        />
+
         {/* Icon badge */}
         <div
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5"
+          className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/15 border border-white/20 flex items-center justify-center shrink-0 mt-0.5 shadow-inner"
           aria-hidden="true"
         >
           <span
-            className="material-symbols-outlined text-primary text-xl sm:text-2xl"
+            className="material-symbols-outlined text-yellow-300 text-xl sm:text-2xl drop-shadow-sm"
             style={{ fontVariationSettings: "'FILL' 1" }}
           >
             lightbulb
@@ -183,12 +213,12 @@ export default function DailyTriviaBar() {
         <div className="flex-1 min-w-0">
           {/* Label row */}
           <div className="flex items-center justify-between gap-2 mb-1">
-            <h3 className="font-headline font-bold text-sm text-on-surface-variant uppercase tracking-widest">
+            <h3 className="font-headline font-bold text-xs text-white/50 uppercase tracking-widest">
               Today&rsquo;s Trivia
             </h3>
-            {/* Category chip — small */}
+            {/* Category chip — dark card version */}
             <span
-              className={`hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-headline font-bold ${meta.bg} ${meta.colour} shrink-0`}
+              className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-headline font-bold border border-white/10 ${meta.cardBg} ${meta.cardColour} shrink-0`}
             >
               <span
                 className="material-symbols-outlined"
@@ -202,18 +232,18 @@ export default function DailyTriviaBar() {
           </div>
 
           {/* Heading */}
-          <p className="font-headline font-bold text-primary text-base sm:text-lg leading-snug mb-1.5">
+          <p className="font-headline font-bold text-white text-base sm:text-lg leading-snug mb-1.5">
             Did You Know?
           </p>
 
-          {/* Fact preview — two lines, then "Read more" */}
-          <p className="font-body-md text-sm sm:text-base text-on-surface leading-relaxed line-clamp-2">
+          {/* Fact preview */}
+          <p className="font-body-md text-sm sm:text-base text-white/80 leading-relaxed line-clamp-2">
             {todaysFact.fact}
           </p>
 
           {/* Read more + context */}
-          <div className="flex items-center gap-2 mt-2 flex-wrap">
-            <span className="font-headline font-bold text-xs text-secondary group-hover:underline transition-all">
+          <div className="flex items-center gap-2 mt-2.5 flex-wrap">
+            <span className="font-headline font-bold text-xs text-yellow-300 group-hover:underline transition-all flex items-center">
               Read more
               <span
                 className="material-symbols-outlined align-middle ml-0.5 group-hover:translate-x-0.5 inline-block transition-transform"
@@ -223,7 +253,7 @@ export default function DailyTriviaBar() {
                 arrow_forward
               </span>
             </span>
-            <span className="text-[11px] font-mono-code text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-mono-code text-white/40 bg-white/10 px-2 py-0.5 rounded-full border border-white/10">
               {todaysFact.yearOrContext}
             </span>
           </div>
