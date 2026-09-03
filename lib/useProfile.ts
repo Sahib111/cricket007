@@ -64,10 +64,110 @@ export function useProfile() {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [needsName, setNeedsName] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [coins, setCoins] = useState<number>(0);
+    const [streak, setStreak] = useState<number>(0);
+
+    const updateWallet = (data: { coins?: number; streak?: number }) => {
+        if (typeof data.coins === 'number') {
+            setCoins(data.coins);
+        }
+        if (typeof data.streak === 'number') {
+            setStreak(data.streak);
+        }
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+                new CustomEvent('cricket007:wallet_update', {
+                    detail: { coins: data.coins, streak: data.streak },
+                })
+            );
+        }
+    };
+
+    const fetchWallet = async (uid: string) => {
+        try {
+            const { data } = await supabase
+                .from('wallets')
+                .select('coins, streak')
+                .eq('user_id', uid)
+                .maybeSingle();
+
+            if (data) {
+                if (typeof data.coins === 'number') setCoins(data.coins);
+                if (typeof data.streak === 'number') setStreak(data.streak);
+            }
+        } catch (e) {
+            console.error('Error fetching wallet:', e);
+        }
+    };
+
+    const refreshWallet = async () => {
+        if (userId) {
+            await fetchWallet(userId);
+        }
+    };
 
     useEffect(() => {
         init();
     }, []);
+
+    // Setup Supabase Realtime subscription and window event listeners when userId is resolved
+    useEffect(() => {
+        if (!userId) return;
+
+        // 1. Initial wallet fetch
+        fetchWallet(userId);
+
+        // 2. Window focus refresh
+        const handleFocus = () => {
+            fetchWallet(userId);
+        };
+        window.addEventListener('focus', handleFocus);
+
+        // 3. Local custom event listener for 0ms cross-component instant sync
+        const handleCustomUpdate = (e: Event) => {
+            const customEvent = e as CustomEvent<{ coins?: number; streak?: number }>;
+            if (customEvent.detail) {
+                if (typeof customEvent.detail.coins === 'number') {
+                    setCoins(customEvent.detail.coins);
+                }
+                if (typeof customEvent.detail.streak === 'number') {
+                    setStreak(customEvent.detail.streak);
+                }
+            }
+        };
+        window.addEventListener('cricket007:wallet_update', handleCustomUpdate);
+
+        // 4. Supabase Realtime Postgres Changes Subscription
+        const channel = supabase
+            .channel(`wallets-realtime-${userId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'wallets',
+                    filter: `user_id=eq.${userId}`,
+                },
+                (payload) => {
+                    if (payload.new && typeof payload.new === 'object') {
+                        const newRow = payload.new as { coins?: number; streak?: number };
+                        if (typeof newRow.coins === 'number') {
+                            setCoins(newRow.coins);
+                        }
+                        if (typeof newRow.streak === 'number') {
+                            setStreak(newRow.streak);
+                        }
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+            window.removeEventListener('cricket007:wallet_update', handleCustomUpdate);
+            supabase.removeChannel(channel);
+        };
+    }, [userId]);
 
     async function init() {
         let localName = '';
@@ -145,6 +245,9 @@ export function useProfile() {
         // 1. Immediately update React state so the modal closes instantly
         setProfile({ displayName: cleanName, avatarSeed });
         setNeedsName(false);
+        setCoins(STARTING_COINS);
+        setStreak(0);
+        updateWallet({ coins: STARTING_COINS, streak: 0 });
 
         // 2. Instantly persist to localStorage
         const currentUid = userId || getOrCreateLocalUserId();
@@ -192,5 +295,41 @@ export function useProfile() {
         })();
     }
 
-    return { userId, profile, needsName, loading, saveName };
+    async function addCoins(amount: number) {
+        if (!userId) return;
+        const newCoins = coins + amount;
+        updateWallet({ coins: newCoins });
+        try {
+            await supabase
+                .from('wallets')
+                .update({ coins: newCoins })
+                .eq('user_id', userId);
+        } catch (e) {
+            console.error('Error adding coins:', e);
+        }
+    }
+
+    async function spendCoins(amount: number): Promise<boolean> {
+        if (!userId || coins < amount) return false;
+        const newCoins = coins - amount;
+        updateWallet({ coins: newCoins });
+        try {
+            const { error } = await supabase
+                .from('wallets')
+                .update({ coins: newCoins })
+                .eq('user_id', userId);
+            if (error) {
+                // rollback on error
+                refreshWallet();
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error('Error spending coins:', e);
+            refreshWallet();
+            return false;
+        }
+    }
+
+    return { userId, profile, needsName, loading, coins, streak, saveName, updateWallet, refreshWallet, addCoins, spendCoins };
 }

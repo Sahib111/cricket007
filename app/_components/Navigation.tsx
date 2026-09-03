@@ -1,47 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useProfileContext } from './ProfileProvider';
 import { trackNavLinkClick } from '@/lib/analytics';
 
 export function HeaderNavbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { userId, profile } = useProfileContext();
-  const [coins, setCoins] = useState(0);
-  const [streak, setStreak] = useState(0);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    async function loadWallet() {
-      try {
-        const { data } = await supabase
-          .from('wallets')
-          .select('coins, streak')
-          .eq('user_id', userId)
-          .maybeSingle();
-
-        if (data) {
-          setCoins(data.coins ?? 0);
-          setStreak(data.streak ?? 0);
-        }
-      } catch (e) {
-        console.error('Error loading wallet in navbar:', e);
-      }
-    }
-
-    loadWallet();
-
-    function onFocus() {
-      loadWallet();
-    }
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, [userId]);
+  const { profile, coins, streak } = useProfileContext();
 
   const navLinks = [
     { name: 'Live Scores', href: '/', exact: true },

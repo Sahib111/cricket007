@@ -153,7 +153,7 @@ function getRoleIcon(role: string) {
 }
 
 export default function AuctionPage() {
-  const { userId } = useProfileContext();
+  const { userId, coins, updateWallet } = useProfileContext();
 
   useEffect(() => {
     trackAuctionStart(LOT_COUNT, BUDGET, TEAM_SIZE);
@@ -282,12 +282,14 @@ export default function AuctionPage() {
         .eq('user_id', userId)
         .single();
 
-      if (wallet) {
-        await supabase
-          .from('wallets')
-          .update({ coins: wallet.coins + reward })
-          .eq('user_id', userId);
-      }
+      const currentBalance = (wallet && typeof wallet.coins === 'number') ? wallet.coins : coins;
+      const newTotal = currentBalance + reward;
+      updateWallet({ coins: newTotal });
+
+      await supabase
+        .from('wallets')
+        .update({ coins: newTotal })
+        .eq('user_id', userId);
     }
   }
 

@@ -8,7 +8,13 @@ interface ProfileContextValue {
     profile: { displayName: string; avatarSeed: string } | null;
     needsName: boolean;
     loading: boolean;
+    coins: number;
+    streak: number;
     saveName: (name: string) => Promise<void>;
+    updateWallet: (data: { coins?: number; streak?: number }) => void;
+    refreshWallet: () => Promise<void>;
+    addCoins: (amount: number) => Promise<void>;
+    spendCoins: (amount: number) => Promise<boolean>;
 }
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);

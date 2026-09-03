@@ -53,20 +53,29 @@ async function settlePendingPredictions(userId: string) {
         if (won) coinsWon += PREDICTION_REWARD;
     }
 
-    if (coinsWon > 0) {
-        const { data: current } = await supabase
-            .from('wallets')
-            .select('coins')
-            .eq('user_id', userId)
-            .single();
-
-        if (current) {
-            await supabase
+        if (coinsWon > 0) {
+            const { data: current } = await supabase
                 .from('wallets')
-                .update({ coins: current.coins + coinsWon })
-                .eq('user_id', userId);
+                .select('coins')
+                .eq('user_id', userId)
+                .single();
+
+            if (current) {
+                const newCoins = current.coins + coinsWon;
+                await supabase
+                    .from('wallets')
+                    .update({ coins: newCoins })
+                    .eq('user_id', userId);
+
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(
+                        new CustomEvent('cricket007:wallet_update', {
+                            detail: { coins: newCoins },
+                        })
+                    );
+                }
+            }
         }
-    }
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
@@ -152,9 +161,22 @@ export function useWallet() {
             }
         });
 
+        const handleCustomUpdate = (e: Event) => {
+            if (!mounted) return;
+            const customEvent = e as CustomEvent<{ coins?: number; streak?: number }>;
+            if (customEvent.detail) {
+                setWallet((prev) => ({
+                    coins: customEvent.detail.coins ?? prev?.coins ?? 0,
+                    streak: customEvent.detail.streak ?? prev?.streak ?? 0,
+                }));
+            }
+        };
+        window.addEventListener('cricket007:wallet_update', handleCustomUpdate);
+
         return () => {
             mounted = false;
             listener.subscription.unsubscribe();
+            window.removeEventListener('cricket007:wallet_update', handleCustomUpdate);
         };
     }, []);
 
@@ -165,26 +187,44 @@ export function useWallet() {
     async function addCoins(amount: number) {
         if (!user || !wallet) return;
         const newCoins = wallet.coins + amount;
+        setWallet({ ...wallet, coins: newCoins });
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+                new CustomEvent('cricket007:wallet_update', {
+                    detail: { coins: newCoins },
+                })
+            );
+        }
         const { error } = await supabase
             .from('wallets')
             .update({ coins: newCoins })
             .eq('user_id', user.id);
 
-        if (!error) setWallet({ ...wallet, coins: newCoins });
+        if (error) {
+            refreshWallet();
+        }
     }
 
     async function spendCoins(amount: number): Promise<boolean> {
         if (!user || !wallet || wallet.coins < amount) return false;
         const newCoins = wallet.coins - amount;
+        setWallet({ ...wallet, coins: newCoins });
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+                new CustomEvent('cricket007:wallet_update', {
+                    detail: { coins: newCoins },
+                })
+            );
+        }
         const { error } = await supabase
             .from('wallets')
             .update({ coins: newCoins })
             .eq('user_id', user.id);
 
         if (!error) {
-            setWallet({ ...wallet, coins: newCoins });
             return true;
         }
+        refreshWallet();
         return false;
     }
 

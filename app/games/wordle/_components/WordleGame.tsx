@@ -193,7 +193,7 @@ function evaluateGuess(guess: string, target: string): EvaluatedLetter[] {
 }
 
 export default function WordleGame() {
-  const { userId } = useProfileContext();
+  const { userId, coins, updateWallet } = useProfileContext();
   const [targetWord, setTargetWord] = useState(DAILY.word);
   const [hint, setHint] = useState(DAILY.hint);
   const [mode, setMode] = useState<'daily' | 'paid'>('daily');
@@ -205,9 +205,13 @@ export default function WordleGame() {
   const [isValidating, setIsValidating] = useState(false);
   const [checkingToday, setCheckingToday] = useState(true);
   const [dailyAlreadyPlayed, setDailyAlreadyPlayed] = useState(false);
-  const [walletCoins, setWalletCoins] = useState(0);
+  const [walletCoins, setWalletCoins] = useState(coins);
   const [showReminderModal, setShowReminderModal] = useState(false);
   const resultSaved = useRef(false);
+
+  useEffect(() => {
+    setWalletCoins(coins);
+  }, [coins]);
 
   const isGameOver = gameStatus !== 'IN_PROGRESS';
 
@@ -237,7 +241,10 @@ export default function WordleGame() {
         .select('coins')
         .eq('user_id', userId)
         .single();
-      if (wallet) setWalletCoins(wallet.coins ?? 0);
+      if (wallet && typeof wallet.coins === 'number') {
+        setWalletCoins(wallet.coins);
+        updateWallet({ coins: wallet.coins });
+      }
 
       setCheckingToday(false);
     }
@@ -277,6 +284,8 @@ export default function WordleGame() {
       newStreak = 1;
     }
 
+    updateWallet({ streak: newStreak });
+
     await supabase
       .from('wallets')
       .update({ streak: newStreak, last_played_date: todayStr })
@@ -306,14 +315,15 @@ export default function WordleGame() {
         .eq('user_id', userId)
         .single();
 
-      if (wallet) {
-        const newTotal = wallet.coins + coinsEarned;
-        await supabase
-          .from('wallets')
-          .update({ coins: newTotal })
-          .eq('user_id', userId);
-        setWalletCoins(newTotal);
-      }
+      const currentBalance = (wallet && typeof wallet.coins === 'number') ? wallet.coins : coins;
+      const newTotal = currentBalance + coinsEarned;
+      updateWallet({ coins: newTotal });
+      setWalletCoins(newTotal);
+
+      await supabase
+        .from('wallets')
+        .update({ coins: newTotal })
+        .eq('user_id', userId);
     }
 
     if (mode === 'daily') {
@@ -433,17 +443,20 @@ export default function WordleGame() {
   }, [guesses, targetWord])();
 
   async function handlePlayAgainPaid() {
-    if (!userId || walletCoins < REPLAY_COST) return;
+    const currentCoins = coins || walletCoins;
+    if (!userId || currentCoins < REPLAY_COST) return;
 
     trackWordleReplay(REPLAY_COST);
     trackCoinsSpent(REPLAY_COST, 'wordle_replay');
 
-    const newTotal = walletCoins - REPLAY_COST;
+    const newTotal = currentCoins - REPLAY_COST;
+    updateWallet({ coins: newTotal });
+    setWalletCoins(newTotal);
+
     await supabase
       .from('wallets')
       .update({ coins: newTotal })
       .eq('user_id', userId);
-    setWalletCoins(newTotal);
 
     const nextWord = getRandomWord(targetWord);
     setTargetWord(nextWord.word);

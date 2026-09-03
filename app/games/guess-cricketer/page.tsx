@@ -24,7 +24,7 @@ function pickRandomPuzzle(excludeIndex?: number): number {
 }
 
 export default function GuessCricketerPage() {
-  const { userId } = useProfileContext();
+  const { userId, coins, updateWallet } = useProfileContext();
   const [puzzleIndex, setPuzzleIndex] = useState(0);
 
   useEffect(() => {
@@ -73,12 +73,14 @@ export default function GuessCricketerPage() {
         .eq('user_id', userId)
         .single();
 
-      if (wallet) {
-        await supabase
-          .from('wallets')
-          .update({ coins: wallet.coins + reward })
-          .eq('user_id', userId);
-      }
+      const currentBalance = (wallet && typeof wallet.coins === 'number') ? wallet.coins : coins;
+      const newTotal = currentBalance + reward;
+      updateWallet({ coins: newTotal });
+
+      await supabase
+        .from('wallets')
+        .update({ coins: newTotal })
+        .eq('user_id', userId);
     }
   }
 
