@@ -121,6 +121,88 @@ function pickLotPlayers(): number[] {
   return indices.slice(0, LOT_COUNT);
 }
 
+/**
+ * Calculates computer's strategic valuation and maximum willingness to pay (WTP) for a player.
+ * Prevents early purse exhaustion while keeping bidding competitive and dynamic.
+ */
+function getComputerPlayerValuation(
+  player: Player,
+  computerWallet: number,
+  computerTeam: RosterEntry[],
+  teamSize: number = TEAM_SIZE
+): { maxWTP: number; hardCap: number; openBid: number } {
+  const spotsNeeded = teamSize - computerTeam.length;
+  if (spotsNeeded <= 0 || computerWallet <= 0) {
+    return { maxWTP: 0, hardCap: 0, openBid: 0 };
+  }
+
+  const spotsRemainingAfter = Math.max(0, spotsNeeded - 1);
+  // Reserve at least 1 coin for each future squad spot
+  const hardCap = Math.max(1, computerWallet - spotsRemainingAfter);
+
+  // Baseline valuation based on player rating (Budget: 20 for 5 spots = 4.0 avg/player)
+  let baseVal = 1;
+  if (player.rating >= 5) {
+    baseVal = 6;
+  } else if (player.rating === 4) {
+    baseVal = 4;
+  } else if (player.rating === 3) {
+    baseVal = 2;
+  } else {
+    baseVal = 1;
+  }
+
+  // Dynamic budget adjustments based on purse health
+  const avgBudgetPerRemainingSpot = computerWallet / spotsNeeded;
+  if (avgBudgetPerRemainingSpot >= 4.5) {
+    if (player.rating >= 4) baseVal += 1;
+  } else if (avgBudgetPerRemainingSpot < 3.0) {
+    baseVal = Math.max(1, baseVal - 1);
+  } else if (avgBudgetPerRemainingSpot <= 1.8) {
+    baseVal = Math.min(2, baseVal);
+  }
+
+  // Role need balance
+  const roleCount = computerTeam.filter(
+    (e) => e.player.role.toLowerCase() === player.role.toLowerCase()
+  ).length;
+  if (roleCount === 0) {
+    baseVal += 1;
+  } else if (roleCount >= 2) {
+    baseVal = Math.max(1, baseVal - 1);
+  }
+
+  // Stage-aware budget ceilings to prevent burning the entire purse on early lots
+  if (spotsNeeded >= 4) {
+    // First 1-2 slots: strict max ceiling to preserve flexibility for remaining 4 spots
+    baseVal = Math.min(baseVal, player.rating >= 5 ? 6 : 4);
+  } else if (spotsNeeded === 3) {
+    baseVal = Math.min(baseVal, player.rating >= 5 ? 7 : 5);
+  } else if (spotsNeeded === 2) {
+    baseVal = Math.min(baseVal, player.rating >= 5 ? 8 : 6);
+  } else if (spotsNeeded === 1) {
+    // Final slot: computer can spend everything left if the player is high value
+    if (player.rating >= 4) {
+      baseVal = Math.max(baseVal, hardCap);
+    }
+  }
+
+  const maxWTP = Math.min(hardCap, Math.max(player.basePrice, baseVal));
+
+  // Determine strategic opening bid (never overpaying right away)
+  let openBid = player.basePrice;
+  if (player.rating >= 5 && avgBudgetPerRemainingSpot >= 3.5 && maxWTP >= 2) {
+    openBid = 2;
+  } else if (player.rating >= 4 && avgBudgetPerRemainingSpot >= 3.0 && maxWTP >= 2 && Math.random() < 0.4) {
+    openBid = 2;
+  } else {
+    openBid = 1;
+  }
+  openBid = Math.min(openBid, maxWTP, hardCap);
+
+  return { maxWTP, hardCap, openBid };
+}
+
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex gap-0.5 justify-center">
@@ -246,15 +328,20 @@ export default function AuctionPage() {
     setOpeningBidder(opener);
 
     if (opener === 'computer' && !computerFull) {
-      const ratingBoost = currentPlayer.rating >= 5 ? 3 : currentPlayer.rating >= 4 ? 2 : 1;
-      const openBid = currentPlayer.basePrice + ratingBoost;
-      if (openBid <= computerWallet) {
+      const { openBid, hardCap } = getComputerPlayerValuation(
+        currentPlayer,
+        computerWallet,
+        computerTeam,
+        TEAM_SIZE
+      );
+      if (openBid <= hardCap && openBid <= computerWallet && openBid > 0) {
         setCurrentBid(openBid);
         setLeadingBidder('computer');
         setStatus('Computer opened the bidding! Bid higher or pass.');
+      } else {
+        setStatus('Waiting for your action...');
       }
-    }
-    else {
+    } else {
       setStatus('Waiting for your action...');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -418,11 +505,32 @@ export default function AuctionPage() {
         finalizeRound('you');
         return;
       }
-      const aggressiveness = currentPlayer.rating >= 5 ? 0.9 : currentPlayer.rating >= 4 ? 0.7 : 0.4;
-      const jump = currentPlayer.rating >= 5 ? 2 : 1;
-      const computerBid = nextBid + jump;
-      const computerCanAfford = computerBid <= computerWallet;
-      const computerWantsToBid = Math.random() < aggressiveness && computerCanAfford;
+      const { maxWTP, hardCap } = getComputerPlayerValuation(
+        currentPlayer,
+        computerWallet,
+        computerTeam,
+        TEAM_SIZE
+      );
+      const computerBid = nextBid + 1;
+      const canAfford = computerBid <= hardCap && computerBid <= computerWallet;
+      const isWithinValuation = computerBid <= maxWTP;
+
+      let computerWantsToBid = false;
+
+      if (canAfford) {
+        if (isWithinValuation) {
+          const willingness = currentPlayer.rating >= 5 ? 0.95 : currentPlayer.rating === 4 ? 0.85 : 0.7;
+          computerWantsToBid = Math.random() < willingness;
+        } else if (
+          computerBid === maxWTP + 1 &&
+          currentPlayer.rating >= 4 &&
+          yourWallet > 5 &&
+          Math.random() < 0.2
+        ) {
+          // Tactical pressure: push the user to spend 1 coin more on star players if safe
+          computerWantsToBid = true;
+        }
+      }
 
       if (computerWantsToBid) {
         setCurrentBid(computerBid);
@@ -431,7 +539,7 @@ export default function AuctionPage() {
       } else {
         finalizeRound('you');
       }
-    }, 900);
+    }, 850);
   }
 
   function handlePass() {
