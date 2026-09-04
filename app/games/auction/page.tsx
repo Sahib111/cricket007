@@ -309,7 +309,51 @@ export default function AuctionPage() {
     }, 1400);
   }
 
-  // Set up each new lot — OR auto-award remaining to computer if your team is already full
+  function autoAssignRemainingToUser(
+    updatedComputerTeam: RosterEntry[],
+    queueIndices: number[],
+    messagePrefix: string = ''
+  ) {
+    const spotsNeeded = TEAM_SIZE - yourTeam.length;
+    if (spotsNeeded <= 0) {
+      setRoundOver(true);
+      setTimeout(() => setGameOver(true), 1200);
+      return;
+    }
+
+    const toAssignIndices = queueIndices.slice(0, spotsNeeded);
+    let userWallet = yourWallet;
+    const newUserEntries: RosterEntry[] = [];
+
+    for (const idx of toAssignIndices) {
+      const p = PLAYER_POOL[idx];
+      const price = Math.max(0, Math.min(userWallet, p.basePrice));
+      userWallet -= price;
+      newUserEntries.push({ player: p, price });
+      trackAuctionPlayerWon(
+        p.name,
+        p.role,
+        p.rating,
+        price
+      );
+    }
+
+    const finalYourTeam = [...yourTeam, ...newUserEntries];
+    setYourWallet(userWallet);
+    setYourTeam(finalYourTeam);
+    setRoundOver(true);
+    setStatus(
+      messagePrefix
+        ? `${messagePrefix} Computer team is complete — remaining players assigned to You.`
+        : 'Computer team is complete — remaining players assigned to You.'
+    );
+
+    setTimeout(() => {
+      setGameOver(true);
+    }, 1400);
+  }
+
+  // Set up each new lot — OR auto-award remaining if either team is already full
   useEffect(() => {
     if (!currentPlayer || gameOver) return;
     if (roundOver === false && lotInitialized.current) return;
@@ -321,6 +365,11 @@ export default function AuctionPage() {
 
     if (yourFull && !computerFull) {
       autoAssignRemainingToComputer(yourTeam, queue, 'Your team is full!');
+      return;
+    }
+
+    if (computerFull && !yourFull) {
+      autoAssignRemainingToUser(computerTeam, queue, 'Computer team is full!');
       return;
     }
 
@@ -471,14 +520,30 @@ export default function AuctionPage() {
 
       setStatus(`You won ${currentPlayer.name} for 🪙${currentBid}!`);
     } else if (winner === 'computer') {
+      const nextCompTeam = [...computerTeam, { player: currentPlayer, price: currentBid }];
       setComputerWallet((w) => w - currentBid);
-      setComputerTeam((t) => [...t, { player: currentPlayer, price: currentBid }]);
-      setStatus(`Computer won ${currentPlayer.name} for 🪙${currentBid}.`);
+      setComputerTeam(nextCompTeam);
       trackAuctionPlayerLost(
         currentPlayer.name,
         currentPlayer.role,
         currentBid
       );
+
+      if (nextCompTeam.length >= TEAM_SIZE) {
+        if (yourTeam.length < TEAM_SIZE) {
+          autoAssignRemainingToUser(
+            nextCompTeam,
+            queue.slice(1),
+            `Computer won ${currentPlayer.name} for 🪙${currentBid}!`
+          );
+        } else {
+          setStatus(`Computer won ${currentPlayer.name} for 🪙${currentBid}! Both teams complete.`);
+          setTimeout(() => setGameOver(true), 1200);
+        }
+        return;
+      }
+
+      setStatus(`Computer won ${currentPlayer.name} for 🪙${currentBid}.`);
     } else {
       setStatus(`${currentPlayer.name} went unsold — back in the queue.`);
     }
@@ -557,7 +622,9 @@ export default function AuctionPage() {
   }
 
   const wasUnsoldRound = roundOver && leadingBidder === null;
-  const autoAwardInProgress = yourFull && !computerFull && !roundOver;
+  const autoAwardInProgress =
+    (yourFull && !computerFull && !roundOver) ||
+    (computerFull && !yourFull && !roundOver);
 
   return (
     <main className="w-full max-w-[1000px] mx-auto px-4 md:px-6 pt-6 sm:pt-8 pb-12">
@@ -659,7 +726,9 @@ export default function AuctionPage() {
             {autoAwardInProgress && (
               <div className="mb-4 bg-secondary/10 border border-secondary/30 rounded-xl py-2 px-3 text-center">
                 <span className="text-xs font-mono-code font-bold text-secondary">
-                  Your team is full — Computer is filling its remaining spots
+                  {yourFull
+                    ? 'Your team is full — Computer is filling its remaining spots'
+                    : 'Computer team is full — Filling your remaining spots'}
                 </span>
               </div>
             )}
