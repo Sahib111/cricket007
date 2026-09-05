@@ -9,21 +9,24 @@ const PRODUCTION_URL = "https://cricket007.online";
 
 export const metadata: Metadata = {
   metadataBase: new URL(PRODUCTION_URL),
-  title: "Cricket007 — The Ultimate Cricket Fan Platform",
+  title: {
+    default: "Cricket 007 — Live Cricket Scores, Predictions & Mini-Games",
+    template: "%s | Cricket 007",
+  },
   description:
-    "Cricket007 is a cricket fan platform with live matches, predictions, games, player challenges and more.",
+    "Cricket 007 is the ultimate cricket fan platform — live scores, match predictions, Cricket Wordle, mini auctions, player guessing games, and more.",
   openGraph: {
-    title: "Cricket007 — The Ultimate Cricket Fan Platform",
+    title: "Cricket 007 — Live Cricket Scores, Predictions & Mini-Games",
     description:
-      "Cricket007 is a cricket fan platform with live matches, predictions, games, player challenges and more.",
+      "Cricket 007 is the ultimate cricket fan platform — live scores, match predictions, Cricket Wordle, mini auctions, player guessing games, and more.",
     url: PRODUCTION_URL,
-    siteName: "Cricket007",
+    siteName: "Cricket 007",
     images: [
       {
         url: `${PRODUCTION_URL}/og-image.jpg`,
         width: 1200,
         height: 630,
-        alt: "Cricket007 — The Ultimate Cricket Fan Platform",
+        alt: "Cricket 007 — Live Cricket Scores, Predictions & Mini-Games",
       },
     ],
     locale: "en_US",
@@ -31,17 +34,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Cricket007 — The Ultimate Cricket Fan Platform",
+    title: "Cricket 007 — Live Cricket Scores, Predictions & Mini-Games",
     description:
-      "Cricket007 is a cricket fan platform with live matches, predictions, games, player challenges and more.",
+      "Cricket 007 is the ultimate cricket fan platform — live scores, match predictions, Cricket Wordle, mini auctions, player guessing games, and more.",
     images: [`${PRODUCTION_URL}/og-image.jpg`],
   },
   icons: {
     icon: "/icon.png",
     apple: "/icon.png",
-  },
-  alternates: {
-    canonical: PRODUCTION_URL,
   },
   robots: {
     index: true,

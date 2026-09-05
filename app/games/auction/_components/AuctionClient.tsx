@@ -234,7 +234,7 @@ function getRoleIcon(role: string) {
   }
 }
 
-export default function AuctionPage() {
+export default function AuctionClient() {
   const { userId, coins, updateWallet } = useProfileContext();
 
   useEffect(() => {

@@ -2,8 +2,12 @@ import type { Metadata } from 'next';
 import WordleGame from './_components/WordleGame';
 
 export const metadata: Metadata = {
-  title: 'Cricket Wordle – Cricket 007',
-  description: 'Guess a 5 letter cricketing term,name,anything.',
+  title: 'Cricket Wordle — Daily Word Guess',
+  description:
+    'Guess a 5-letter cricketing term every day. A fun daily word puzzle for cricket fans — test your cricket vocabulary on Cricket 007.',
+  alternates: {
+    canonical: 'https://cricket007.online/games/wordle',
+  },
 };
 
 export default function WordlePage() {
