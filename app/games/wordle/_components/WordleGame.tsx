@@ -12,6 +12,8 @@ import {
   trackCoinsEarned,
   trackCoinsSpent,
   setStreakProperties,
+  trackStreakUpdated,
+  trackStreakRecord,
 } from '@/lib/analytics';
 import ReminderOptInModal, { getReminderPrefKey } from '@/app/_components/ReminderOptInModal';
 
@@ -260,8 +262,8 @@ export default function WordleGame() {
     }
   }, [checkingToday, dailyAlreadyPlayed]);
 
-  async function updateStreak(won: boolean): Promise<{ currentStreak: number; maxStreak: number }> {
-    if (!userId || mode !== 'daily') return { currentStreak: 0, maxStreak: 0 }; // only the free daily game affects streak
+  async function updateStreak(won: boolean): Promise<{ currentStreak: number; maxStreak: number; previousStreak: number; isNewRecord: boolean }> {
+    if (!userId || mode !== 'daily') return { currentStreak: 0, maxStreak: 0, previousStreak: 0, isNewRecord: false }; // only the free daily game affects streak
 
     const { data: wallet } = await supabase
       .from('wallets')
@@ -269,23 +271,27 @@ export default function WordleGame() {
       .eq('user_id', userId)
       .single();
 
-    if (!wallet) return { currentStreak: 0, maxStreak: 0 };
+    if (!wallet) return { currentStreak: 0, maxStreak: 0, previousStreak: 0, isNewRecord: false };
 
     const todayStr = getTodayDateString();
     const yesterdayStr = getYesterdayDateString();
+
+    const previousStreak = wallet.streak ?? 0;
+    const previousMaxStreak = wallet.max_streak ?? 0;
 
     let newStreak: number;
     if (!won) {
       newStreak = 0;
     } else if (wallet.last_played_date === yesterdayStr) {
-      newStreak = (wallet.streak ?? 0) + 1;
+      newStreak = previousStreak + 1;
     } else if (wallet.last_played_date === todayStr) {
-      newStreak = wallet.streak ?? 0;
+      newStreak = previousStreak;
     } else {
       newStreak = 1;
     }
 
-    const newMaxStreak = Math.max(newStreak, wallet.max_streak ?? 0);
+    const isNewRecord = newStreak > previousMaxStreak && newStreak > 0;
+    const newMaxStreak = Math.max(newStreak, previousMaxStreak);
 
     updateWallet({ streak: newStreak, max_streak: newMaxStreak });
 
@@ -297,7 +303,27 @@ export default function WordleGame() {
     // Sync to PostHog person properties
     setStreakProperties(newStreak, newMaxStreak);
 
-    return { currentStreak: newStreak, maxStreak: newMaxStreak };
+    // Track streak updated event
+    trackStreakUpdated({
+      currentStreak: newStreak,
+      previousStreak,
+      maxStreak: newMaxStreak,
+      streakType: 'daily_puzzle',
+      gameName: 'wordle',
+      userId,
+    });
+
+    // Track streak record if user achieved a new personal best
+    if (isNewRecord) {
+      trackStreakRecord({
+        currentStreak: newStreak,
+        maxStreak: newMaxStreak,
+        streakType: 'daily_puzzle',
+        gameName: 'wordle',
+      });
+    }
+
+    return { currentStreak: newStreak, maxStreak: newMaxStreak, previousStreak, isNewRecord };
   }
 
   async function saveResult(status: 'WON' | 'LOST', attemptCount: number) {
@@ -315,6 +341,13 @@ export default function WordleGame() {
     });
 
     const streakResult = await updateStreak(status === 'WON');
+
+    if (status === 'WON') {
+      trackWordleGameWon(attemptCount, mode, targetWord, WIN_REWARD, streakResult.currentStreak, streakResult.maxStreak);
+      trackCoinsEarned(WIN_REWARD, 'wordle');
+    } else {
+      trackWordleGameLost(attemptCount, mode, targetWord, streakResult.currentStreak, streakResult.maxStreak);
+    }
 
     if (coinsEarned > 0) {
       const { data: wallet } = await supabase
@@ -395,12 +428,9 @@ export default function WordleGame() {
     if (currentGuess === targetWord) {
       setGameStatus('WON');
       saveResult('WON', newGuesses.length);
-      trackWordleGameWon(newGuesses.length, mode, targetWord, WIN_REWARD);
-      trackCoinsEarned(WIN_REWARD, 'wordle');
     } else if (newGuesses.length >= MAX_ATTEMPTS) {
       setGameStatus('LOST');
       saveResult('LOST', newGuesses.length);
-      trackWordleGameLost(newGuesses.length, mode, targetWord);
     }
   }, [currentGuess, guesses, isGameOver, isValidating, targetWord, mode, userId]);
 

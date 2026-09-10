@@ -68,6 +68,10 @@ export const ANALYTICS_EVENTS = {
     // ── Suggestions & Feedback ────────────────────
     SUGGEST_MODAL_OPENED: 'suggest_modal_opened',
     GAME_SUGGESTION_SUBMITTED: 'game_suggestion_submitted',
+
+    // ── Streak Analytics ──────────────────────────
+    STREAK_UPDATED: 'streak_updated',
+    STREAK_RECORD: 'streak_record',
 } as const;
 
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS];
@@ -142,6 +146,38 @@ export function setStreakProperties(currentStreak: number, maxStreak: number) {
     } catch {
         // PostHog not initialized
     }
+}
+
+export function trackStreakUpdated(data: {
+    currentStreak: number;
+    previousStreak: number;
+    maxStreak: number;
+    streakType?: string;
+    gameName?: string;
+    userId?: string;
+}) {
+    track(ANALYTICS_EVENTS.STREAK_UPDATED, {
+        current_streak: data.currentStreak,
+        previous_streak: data.previousStreak,
+        max_streak: data.maxStreak,
+        streak_type: data.streakType || 'daily_puzzle',
+        game_name: data.gameName || 'wordle',
+        user_id: data.userId,
+    });
+}
+
+export function trackStreakRecord(data: {
+    currentStreak: number;
+    maxStreak: number;
+    streakType?: string;
+    gameName?: string;
+}) {
+    track(ANALYTICS_EVENTS.STREAK_RECORD, {
+        current_streak: data.currentStreak,
+        max_streak: data.maxStreak,
+        streak_type: data.streakType || 'daily_puzzle',
+        game_name: data.gameName || 'wordle',
+    });
 }
 
 /* ─── Specialized Type-Safe Event Tracking Functions ───────────── */
