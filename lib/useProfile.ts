@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
-import { identifyUser, trackNameSubmit, trackCoinsEarned } from './analytics';
+import { identifyUser, trackNameSubmit, trackCoinsEarned, setStreakProperties } from './analytics';
 
 const AVATAR_SEEDS = ['1', '2', '3', '4', '5', '6', '7', '8'];
 const STARTING_COINS = 100;
@@ -66,18 +66,22 @@ export function useProfile() {
     const [loading, setLoading] = useState(true);
     const [coins, setCoins] = useState<number>(0);
     const [streak, setStreak] = useState<number>(0);
+    const [maxStreak, setMaxStreak] = useState<number>(0);
 
-    const updateWallet = (data: { coins?: number; streak?: number }) => {
+    const updateWallet = (data: { coins?: number; streak?: number; max_streak?: number }) => {
         if (typeof data.coins === 'number') {
             setCoins(data.coins);
         }
         if (typeof data.streak === 'number') {
             setStreak(data.streak);
         }
+        if (typeof data.max_streak === 'number') {
+            setMaxStreak(data.max_streak);
+        }
         if (typeof window !== 'undefined') {
             window.dispatchEvent(
                 new CustomEvent('cricket007:wallet_update', {
-                    detail: { coins: data.coins, streak: data.streak },
+                    detail: { coins: data.coins, streak: data.streak, max_streak: data.max_streak },
                 })
             );
         }
@@ -87,13 +91,20 @@ export function useProfile() {
         try {
             const { data } = await supabase
                 .from('wallets')
-                .select('coins, streak')
+                .select('coins, streak, max_streak')
                 .eq('user_id', uid)
                 .maybeSingle();
 
             if (data) {
                 if (typeof data.coins === 'number') setCoins(data.coins);
                 if (typeof data.streak === 'number') setStreak(data.streak);
+                if (typeof data.max_streak === 'number') setMaxStreak(data.max_streak);
+
+                // Sync streak properties to PostHog
+                setStreakProperties(
+                    typeof data.streak === 'number' ? data.streak : 0,
+                    typeof data.max_streak === 'number' ? data.max_streak : 0,
+                );
             }
         } catch (e) {
             console.error('Error fetching wallet:', e);
@@ -125,13 +136,16 @@ export function useProfile() {
 
         // 3. Local custom event listener for 0ms cross-component instant sync
         const handleCustomUpdate = (e: Event) => {
-            const customEvent = e as CustomEvent<{ coins?: number; streak?: number }>;
+            const customEvent = e as CustomEvent<{ coins?: number; streak?: number; max_streak?: number }>;
             if (customEvent.detail) {
                 if (typeof customEvent.detail.coins === 'number') {
                     setCoins(customEvent.detail.coins);
                 }
                 if (typeof customEvent.detail.streak === 'number') {
                     setStreak(customEvent.detail.streak);
+                }
+                if (typeof customEvent.detail.max_streak === 'number') {
+                    setMaxStreak(customEvent.detail.max_streak);
                 }
             }
         };
@@ -150,12 +164,15 @@ export function useProfile() {
                 },
                 (payload) => {
                     if (payload.new && typeof payload.new === 'object') {
-                        const newRow = payload.new as { coins?: number; streak?: number };
+                        const newRow = payload.new as { coins?: number; streak?: number; max_streak?: number };
                         if (typeof newRow.coins === 'number') {
                             setCoins(newRow.coins);
                         }
                         if (typeof newRow.streak === 'number') {
                             setStreak(newRow.streak);
+                        }
+                        if (typeof newRow.max_streak === 'number') {
+                            setMaxStreak(newRow.max_streak);
                         }
                     }
                 }
@@ -247,7 +264,8 @@ export function useProfile() {
         setNeedsName(false);
         setCoins(STARTING_COINS);
         setStreak(0);
-        updateWallet({ coins: STARTING_COINS, streak: 0 });
+        setMaxStreak(0);
+        updateWallet({ coins: STARTING_COINS, streak: 0, max_streak: 0 });
 
         // 2. Instantly persist to localStorage
         const currentUid = userId || getOrCreateLocalUserId();
@@ -280,7 +298,7 @@ export function useProfile() {
                         supabase
                             .from('wallets')
                             .upsert(
-                                { user_id: currentUid, coins: STARTING_COINS, streak: 0 },
+                                { user_id: currentUid, coins: STARTING_COINS, streak: 0, max_streak: 0 },
                                 { onConflict: 'user_id', ignoreDuplicates: true }
                             ),
                     ]),
@@ -331,5 +349,5 @@ export function useProfile() {
         }
     }
 
-    return { userId, profile, needsName, loading, coins, streak, saveName, updateWallet, refreshWallet, addCoins, spendCoins };
+    return { userId, profile, needsName, loading, coins, streak, maxStreak, saveName, updateWallet, refreshWallet, addCoins, spendCoins };
 }

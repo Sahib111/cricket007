@@ -130,6 +130,20 @@ export function resetAnalytics() {
     }
 }
 
+/* ─── Streak Properties ─────────────────────────────────────────── */
+export function setStreakProperties(currentStreak: number, maxStreak: number) {
+    if (typeof window === 'undefined') return;
+
+    try {
+        posthog.setPersonProperties({
+            current_streak: currentStreak,
+            max_streak: maxStreak,
+        });
+    } catch {
+        // PostHog not initialized
+    }
+}
+
 /* ─── Specialized Type-Safe Event Tracking Functions ───────────── */
 
 // Navigation & Hubs
@@ -197,22 +211,39 @@ export function trackWordleGuess(guess: string, attemptNumber: number, mode: 'da
     });
 }
 
-export function trackWordleGameWon(attempts: number, mode: 'daily' | 'paid', targetWord: string, coinsWon: number) {
+export function trackWordleGameWon(
+    attempts: number,
+    mode: 'daily' | 'paid',
+    targetWord: string,
+    coinsWon: number,
+    currentStreak?: number,
+    maxStreak?: number,
+) {
     track(ANALYTICS_EVENTS.WORDLE_GAME_WON, {
         game_id: 'wordle',
         attempts,
         mode,
         target_word: targetWord,
         coins_earned: coinsWon,
+        current_streak: currentStreak,
+        max_streak: maxStreak,
     });
 }
 
-export function trackWordleGameLost(attempts: number, mode: 'daily' | 'paid', targetWord: string) {
+export function trackWordleGameLost(
+    attempts: number,
+    mode: 'daily' | 'paid',
+    targetWord: string,
+    currentStreak?: number,
+    maxStreak?: number,
+) {
     track(ANALYTICS_EVENTS.WORDLE_GAME_LOST, {
         game_id: 'wordle',
         attempts,
         mode,
         target_word: targetWord,
+        current_streak: currentStreak,
+        max_streak: maxStreak,
     });
 }
 

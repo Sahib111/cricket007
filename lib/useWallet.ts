@@ -9,6 +9,7 @@ import type { User } from '@supabase/supabase-js';
 interface Wallet {
     coins: number;
     streak: number;
+    max_streak: number;
 }
 
 const PREDICTION_REWARD = 100;
@@ -89,7 +90,7 @@ async function fetchSupabaseWallet(userId: string) {
     try {
         const { data } = await supabase
             .from('wallets')
-            .select('coins, streak')
+            .select('coins, streak, max_streak')
             .eq('user_id', userId)
             .maybeSingle();
         return data;
@@ -163,11 +164,12 @@ export function useWallet() {
 
         const handleCustomUpdate = (e: Event) => {
             if (!mounted) return;
-            const customEvent = e as CustomEvent<{ coins?: number; streak?: number }>;
+            const customEvent = e as CustomEvent<{ coins?: number; streak?: number; max_streak?: number }>;
             if (customEvent.detail) {
                 setWallet((prev) => ({
                     coins: customEvent.detail.coins ?? prev?.coins ?? 0,
                     streak: customEvent.detail.streak ?? prev?.streak ?? 0,
+                    max_streak: customEvent.detail.max_streak ?? prev?.max_streak ?? 0,
                 }));
             }
         };

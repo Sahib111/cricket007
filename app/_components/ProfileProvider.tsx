@@ -10,8 +10,9 @@ interface ProfileContextValue {
     loading: boolean;
     coins: number;
     streak: number;
+    maxStreak: number;
     saveName: (name: string) => Promise<void>;
-    updateWallet: (data: { coins?: number; streak?: number }) => void;
+    updateWallet: (data: { coins?: number; streak?: number; max_streak?: number }) => void;
     refreshWallet: () => Promise<void>;
     addCoins: (amount: number) => Promise<void>;
     spendCoins: (amount: number) => Promise<boolean>;

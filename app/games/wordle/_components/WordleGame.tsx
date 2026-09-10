@@ -11,6 +11,7 @@ import {
   trackWordleReplay,
   trackCoinsEarned,
   trackCoinsSpent,
+  setStreakProperties,
 } from '@/lib/analytics';
 import ReminderOptInModal, { getReminderPrefKey } from '@/app/_components/ReminderOptInModal';
 
@@ -259,16 +260,16 @@ export default function WordleGame() {
     }
   }, [checkingToday, dailyAlreadyPlayed]);
 
-  async function updateStreak(won: boolean) {
-    if (!userId || mode !== 'daily') return; // only the free daily game affects streak
+  async function updateStreak(won: boolean): Promise<{ currentStreak: number; maxStreak: number }> {
+    if (!userId || mode !== 'daily') return { currentStreak: 0, maxStreak: 0 }; // only the free daily game affects streak
 
     const { data: wallet } = await supabase
       .from('wallets')
-      .select('streak, last_played_date')
+      .select('streak, max_streak, last_played_date')
       .eq('user_id', userId)
       .single();
 
-    if (!wallet) return;
+    if (!wallet) return { currentStreak: 0, maxStreak: 0 };
 
     const todayStr = getTodayDateString();
     const yesterdayStr = getYesterdayDateString();
@@ -284,12 +285,19 @@ export default function WordleGame() {
       newStreak = 1;
     }
 
-    updateWallet({ streak: newStreak });
+    const newMaxStreak = Math.max(newStreak, wallet.max_streak ?? 0);
+
+    updateWallet({ streak: newStreak, max_streak: newMaxStreak });
 
     await supabase
       .from('wallets')
-      .update({ streak: newStreak, last_played_date: todayStr })
+      .update({ streak: newStreak, max_streak: newMaxStreak, last_played_date: todayStr })
       .eq('user_id', userId);
+
+    // Sync to PostHog person properties
+    setStreakProperties(newStreak, newMaxStreak);
+
+    return { currentStreak: newStreak, maxStreak: newMaxStreak };
   }
 
   async function saveResult(status: 'WON' | 'LOST', attemptCount: number) {
@@ -306,7 +314,7 @@ export default function WordleGame() {
       coins_earned: coinsEarned,
     });
 
-    await updateStreak(status === 'WON');
+    const streakResult = await updateStreak(status === 'WON');
 
     if (coinsEarned > 0) {
       const { data: wallet } = await supabase
